@@ -20,7 +20,6 @@ fun AudioPlayerAppNavHost(
     composable<AudioPlayerAppDestinations.Home> {
       HomeScreen(
         modifier = modifier,
-        sampleKey = "datt11"
       )
     }
   }
