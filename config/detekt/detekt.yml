@@ -1,0 +1,35 @@
+Compose:
+  ComposableAnnotationNaming:
+    active: true
+  PreviewPublic:
+    active: true
+  CompositionLocalAllowlist:
+    active: false
+
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable']
+
+style:
+  UnusedPrivateMember:
+    active: true
+    allowedNames: '.*Preview|test.*|.*Test'
+
+config:
+  validation: true
+  warningsAsErrors: false
+  excludes: ''
+
+complexity:
+  TooManyFunctions:
+    thresholdInFiles: 20
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: true
+  TrailingCommaOnDeclarationSite:
+    active: true
+  Indentation:
+    indentSize: 2
