@@ -12,11 +12,11 @@ plugins {
 }
 
 android {
-  namespace = "io.github.datt16.abstraction"
+  namespace = "io.github.datt16.audioplayer"
   compileSdk = VersionCodes.VANILLA_ICE_CREAM
 
   defaultConfig {
-    applicationId = "io.github.datt16.abstraction"
+    applicationId = "io.github.datt16.audioplayer"
     minSdk = VersionCodes.Q
     targetSdk = VersionCodes.VANILLA_ICE_CREAM
     versionCode = 29350001

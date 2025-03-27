@@ -1,4 +1,4 @@
-package io.github.datt16.abstraction
+package io.github.datt16.audioplayer
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -1,6 +1,6 @@
-# Abstraction Android
+# Audio PLayer
 
-Androidアプリ開発のテンプレートです。通信系の仕組みやCI/CDなどは含めてないです。
+音声データを再生するアプリです。
 
 ## 構成
 - Kotlin

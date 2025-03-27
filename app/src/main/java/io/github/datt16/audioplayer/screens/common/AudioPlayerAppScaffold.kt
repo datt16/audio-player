@@ -1,4 +1,4 @@
-package io.github.datt16.abstraction.screens.common
+package io.github.datt16.audioplayer.screens.common
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,11 +15,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import io.github.datt16.abstraction.core.designsystem.AbstractionAppTheme
+import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AbstractionAppScaffold(
+fun AudioPlayerAppScaffold(
   modifier: Modifier = Modifier,
   content: @Composable (paddingValues: PaddingValues) -> Unit,
 ) {
@@ -28,7 +28,7 @@ fun AbstractionAppScaffold(
     topBar = {
       TopAppBar(
         title = {
-          Text("Abstraction App")
+          Text("Audio Player")
         }
       )
     },
@@ -54,9 +54,9 @@ fun AbstractionAppScaffold(
 
 @Preview
 @Composable
-private fun AbstractionAppScaffoldPreview() {
-  AbstractionAppTheme {
-    AbstractionAppScaffold {
+private fun AudioPlayerAppScaffoldPreview() {
+  AudioPlayerAppTheme {
+    AudioPlayerAppScaffold {
       Column {
         Text("Hello, This is sample text")
       }

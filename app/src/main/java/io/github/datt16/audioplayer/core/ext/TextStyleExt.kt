@@ -1,4 +1,4 @@
-package io.github.datt16.abstraction.core.ext
+package io.github.datt16.audioplayer.core.ext
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight

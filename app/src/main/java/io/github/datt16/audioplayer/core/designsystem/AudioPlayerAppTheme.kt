@@ -1,4 +1,4 @@
-package io.github.datt16.abstraction.core.designsystem
+package io.github.datt16.audioplayer.core.designsystem
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -12,7 +12,7 @@ val LocalAppColors = compositionLocalOf { LightColorScheme }
 val LocalAppTypography = compositionLocalOf { Typography() }
 
 @Composable
-fun AbstractionAppTheme(
+fun AudioPlayerAppTheme(
   darkTheme: Boolean = false,
   content: @Composable () -> Unit,
 ) {
@@ -29,7 +29,7 @@ fun AbstractionAppTheme(
   }
 }
 
-object AbstractionAppTheme {
+object AudioPlayerAppTheme {
   val colors: ColorScheme
     @Composable
     @ReadOnlyComposable

@@ -1,4 +1,4 @@
-package io.github.datt16.abstraction.core.designsystem
+package io.github.datt16.audioplayer.core.designsystem
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme

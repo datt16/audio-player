@@ -1,4 +1,4 @@
-package io.github.datt16.abstraction.screens.home
+package io.github.datt16.audioplayer.screens.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +14,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.datt16.abstraction.core.designsystem.AbstractionAppTheme
-import io.github.datt16.abstraction.core.ext.black
-import io.github.datt16.abstraction.viewmodels.HomeViewModel
+import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
+import io.github.datt16.audioplayer.core.ext.black
+import io.github.datt16.audioplayer.viewmodels.HomeViewModel
 
 @Composable
 fun HomeScreen(
@@ -41,7 +41,7 @@ fun HomeScreen(
       }
     } else {
       Text(
-        style = AbstractionAppTheme.typography.displayMedium.black(),
+        style = AudioPlayerAppTheme.typography.displayMedium.black(),
         text = "Hello $sampleKey,\nThis is Home Screen",
         modifier = Modifier.fillMaxWidth()
       )
@@ -52,7 +52,7 @@ fun HomeScreen(
 @Preview
 @Composable
 private fun HomeScreenPreview() {
-  AbstractionAppTheme {
+  AudioPlayerAppTheme {
     HomeScreen()
   }
 }
