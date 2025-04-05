@@ -11,10 +11,24 @@ class HomeViewModel @Inject constructor(
   private val playbackManager: PlaybackManager,
 ) : ViewModel() {
 
-  fun getExoPlayer() = playbackManager.player
+  fun getExoPlayer() = playbackManager.exoPlayer
+
+  val playbackFlow = playbackManager.getPlaybackProgressFlow()
 
   fun startPlayback(url: String) {
     playbackManager.setup(url.toUri())
     playbackManager.play()
+  }
+
+  fun play() {
+    playbackManager.play()
+  }
+
+  fun pause() {
+    playbackManager.pause()
+  }
+
+  fun seekTo(percentage: Float) {
+    playbackManager.seekToByPercentage(percentage)
   }
 }

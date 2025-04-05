@@ -70,6 +70,7 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling.prview)
   debugImplementation(libs.androidx.compose.ui.tooling)
 
+  implementation(libs.androidx.media3.ui)
   implementation(libs.androidx.media3.ui.compose)
   implementation(libs.androidx.media3.exoplayer.hls)
   implementation(libs.androidx.media3.exoplayer)
