@@ -28,7 +28,7 @@ enum class PlaybackState {
 @UnstableApi
 @Singleton
 class PlaybackManager @Inject constructor(
-  val exoPlayer: ExoPlayer,
+  private val exoPlayer: ExoPlayer,
   private val dataSourceFactory: DataSource.Factory,
 ) : Player.Listener {
 
@@ -75,5 +75,13 @@ class PlaybackManager @Inject constructor(
       emit(Pair(progressPercentage, currentPosition))
       delay(pollInterval)
     }
+  }
+
+  fun getIsPlaying(): Boolean {
+    return exoPlayer.isPlaying
+  }
+
+  fun getDuration(): Long {
+    return exoPlayer.duration
   }
 }

@@ -7,7 +7,6 @@ import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.player.PlaybackManager
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
@@ -17,7 +16,11 @@ class HomeViewModel
   private val playbackManager: PlaybackManager,
 ) : ViewModel() {
 
-  fun getExoPlayer() = playbackManager.exoPlayer
+  val isPlaying
+    get() = playbackManager.getIsPlaying()
+
+  val duration
+    get() = playbackManager.getDuration()
 
   val playbackFlow = playbackManager.getPlaybackProgressFlow()
   val audioFrequencyMapFlow =

@@ -55,26 +55,26 @@ fun HomeScreen(
 
   Column(
     modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp)
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
   ) {
     AudioVisualizer(
       viewModel = viewModel,
       modifier = Modifier
-        .height(200.dp)
-        .fillMaxWidth(),
+          .height(200.dp)
+          .fillMaxWidth(),
     )
 
     Spacer(modifier = Modifier.height(16.dp))
 
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-      val duration = viewModel.getExoPlayer().duration
+      val duration = viewModel.duration
       val currentPositionMinutes = (duration * progressPercentage / 1000f / 60).toInt()
       val currentPositionSeconds = (duration * progressPercentage / 1000f % 60).toInt()
 
       IconButton(
         onClick = {
-          if (viewModel.getExoPlayer().isPlaying) {
+          if (viewModel.isPlaying) {
             viewModel.pause()
             playbackIcon = Icons.Default.PlayArrow
           } else {
