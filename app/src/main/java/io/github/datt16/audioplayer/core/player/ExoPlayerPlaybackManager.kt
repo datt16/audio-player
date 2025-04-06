@@ -24,10 +24,10 @@ class ExoPlayerPlaybackManager @Inject constructor(
 ) : Player.Listener, PlaybackManager {
 
   private var _audioVisualizer: AudioVisualizer? = null
-  val audioVisualizer get() = _audioVisualizer
+  override val audioVisualizer get() = _audioVisualizer
 
   @OptIn(UnstableApi::class)
-  override fun setup(uri: Uri) {
+  override suspend fun setup(uri: Uri) {
     val mediaItem = MediaItem.fromUri(uri)
     val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
 
@@ -75,6 +75,7 @@ class ExoPlayerPlaybackManager @Inject constructor(
   override val isPlaying: Boolean
     get() = exoPlayer.isPlaying
 
-  override val duration: Long
-    get() = exoPlayer.duration
+  override val duration: Long by lazy {
+    exoPlayer.duration
+  }
 }

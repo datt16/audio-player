@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 import io.github.datt16.audioplayer.viewmodels.HomeViewModel
+import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 
 @Composable
 fun HomeScreen(
@@ -55,14 +57,14 @@ fun HomeScreen(
 
   Column(
     modifier = modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp)
   ) {
     AudioVisualizer(
-      viewModel = viewModel,
+      viewModel.audioFrequencyMapFlow,
       modifier = Modifier
-          .height(200.dp)
-          .fillMaxWidth(),
+        .height(200.dp)
+        .fillMaxWidth(),
     )
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -114,26 +116,33 @@ fun HomeScreen(
 
 @Composable
 fun AudioVisualizer(
-  viewModel: HomeViewModel,
+  frequencyMapFlow: Flow<Map<Float, Float>>,
   modifier: Modifier = Modifier,
   barColor: Color = AudioPlayerAppTheme.colors.primary,
 ) {
-  val frequencyMap by viewModel.audioFrequencyMapFlow.collectAsState(initial = emptyMap())
-  Canvas(modifier = modifier) {
-    if (frequencyMap.isNotEmpty()) {
-      // 周波数キーの昇順にソート
-      val sortedEntries = frequencyMap.toSortedMap()
-      // 振幅の最大値を取得（ゼロ割防止のため最低1f）
-      val maxMagnitude = sortedEntries.values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
-      // バーの幅を計算（エントリ数に合わせてキャンバス全体に広げる）
-      val barWidth = size.width / sortedEntries.size
+  val rawFrequencyMap by frequencyMapFlow.collectAsState(initial = emptyMap())
+  // 低域通過フィルタを使った平滑化を適用するための状態
+  var smoothedFrequencyMap by remember { mutableStateOf(rawFrequencyMap) }
 
+  // 平滑化処理：ComposeのLaunchedEffect内で低頻度に更新
+  LaunchedEffect(rawFrequencyMap) {
+    // 過去の状態との補間処理
+    smoothedFrequencyMap = rawFrequencyMap.map { (frequency, currentMagnitude) ->
+      val previousMagnitude = smoothedFrequencyMap[frequency] ?: currentMagnitude
+      val newMagnitude = previousMagnitude * 0.8f + currentMagnitude * 0.2f
+      frequency to newMagnitude
+    }.toMap()
+  }
+
+  Canvas(modifier = modifier) {
+    if (smoothedFrequencyMap.isNotEmpty()) {
+      val sortedEntries = smoothedFrequencyMap.toSortedMap()
+      val maxMagnitude = sortedEntries.values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
+      val barWidth = size.width / sortedEntries.size
       sortedEntries.entries.forEachIndexed { index, entry ->
         val magnitude = entry.value
-        // 正規化された高さ（キャンバスの高さに対しての割合）
         val barHeight = (magnitude / maxMagnitude) * size.height
 
-        // キャンバスの下からバーを描画
         drawRect(
           color = barColor,
           topLeft = Offset(x = index * barWidth, y = size.height - barHeight),
