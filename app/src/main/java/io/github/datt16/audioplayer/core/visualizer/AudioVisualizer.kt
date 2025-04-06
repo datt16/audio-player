@@ -3,7 +3,6 @@ package io.github.datt16.audioplayer.core.visualizer
 import android.media.audiofx.Visualizer
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import timber.log.Timber
 import kotlin.math.hypot
 
 class AudioVisualizer(
