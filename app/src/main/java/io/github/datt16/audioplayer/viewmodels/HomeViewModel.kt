@@ -5,41 +5,39 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.datt16.audioplayer.core.player.PlaybackManager
+import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
 import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
-class HomeViewModel
-@Inject constructor(
-  private val playbackManager: PlaybackManager,
+class HomeViewModel @Inject constructor(
+  private val exoPlayerPlaybackManager: ExoPlayerPlaybackManager,
 ) : ViewModel() {
 
   val isPlaying
-    get() = playbackManager.getIsPlaying()
-
+    get() = exoPlayerPlaybackManager.isPlaying
   val duration
-    get() = playbackManager.getDuration()
+    get() = exoPlayerPlaybackManager.duration
+  val playbackFlow = exoPlayerPlaybackManager.playbackProgressFlow
 
-  val playbackFlow = playbackManager.getPlaybackProgressFlow()
   val audioFrequencyMapFlow =
-    playbackManager.audioVisualizer?.frequencyMapFlow ?: emptyFlow()
+    exoPlayerPlaybackManager.audioVisualizer?.frequencyMapFlow ?: emptyFlow()
 
   fun startPlayback(url: String) {
-    playbackManager.setup(url.toUri())
-    playbackManager.play()
+    exoPlayerPlaybackManager.setup(url.toUri())
+    exoPlayerPlaybackManager.play()
   }
 
   fun play() {
-    playbackManager.play()
+    exoPlayerPlaybackManager.play()
   }
 
   fun pause() {
-    playbackManager.pause()
+    exoPlayerPlaybackManager.pause()
   }
 
   fun seekTo(percentage: Float) {
-    playbackManager.seekToByPercentage(percentage)
+    exoPlayerPlaybackManager.seekToByPercentage(percentage)
   }
 }
