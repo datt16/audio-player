@@ -1,8 +1,8 @@
 package io.github.datt16.audioplayer.screens.home
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring as composeSpring
+import androidx.compose.animation.core.spring as composeSpring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 import io.github.datt16.audioplayer.viewmodels.HomeViewModel
-import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun HomeScreen(
@@ -54,34 +52,45 @@ fun HomeScreen(
   var progressPercentage by remember { mutableFloatStateOf(0f) }
   var playbackIcon by remember { mutableStateOf(Icons.Default.PlayArrow) }
 
-  val audioLevel by viewModel.audioLevelFlow.collectAsState(initial = 0f)
+  // 同期された音量レベル - フレームレート制限とスムーズなアニメーションを提供
+  val audioLevel by
+  rememberSynchronizedAudioLevel(
+    audioLevelFlow = viewModel.audioLevelFlow,
+    initialValue = 0f,
+    minFps = 60f // 高いフレームレートで滑らかなアニメーション
+  )
+
+  // 同期された周波数マップ - ビジュアライザー用
+  val frequencyMap by
+  rememberSynchronizedFrequencyMap(
+    frequencyMapFlow = viewModel.audioFrequencyMapFlow,
+    minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
+  )
 
   LaunchedEffect(Unit) {
     viewModel.startPlayback("https://storage.googleapis.com/exoplayer-test-media-0/play.mp3")
     playbackIcon = Icons.Outlined.PlayArrow
   }
+
   LaunchedEffect(Unit) {
     viewModel.playbackFlow.collect { (progress, _) -> progressPercentage = progress }
   }
 
-  Column(
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp)
-  ) {
+  Column(modifier = modifier
+    .fillMaxWidth()
+    .padding(horizontal = 16.dp)) {
     // アバター写真と音量に反応するアニメーション
     AudioReactiveAvatar(
-      audioLevel = audioLevel,
-      modifier =
-      Modifier
-        .aspectRatio(1f) // 正円を維持するためにアスペクト比を1:1に固定
+      audioLevel = audioLevel, // 同期された音量レベルを使用
+      modifier = Modifier
+        .aspectRatio(1f)
         .size(200.dp)
         .padding(vertical = 16.dp),
     )
 
-    // 従来のオーディオビジュアライザー
+    // 従来のオーディオビジュアライザー - 同期された周波数マップを使用
     AudioVisualizer(
-      viewModel.audioFrequencyMapFlow,
+      frequencyMap = frequencyMap, // 直接Flowではなく同期されたMapを使用
       modifier = Modifier
         .height(200.dp)
         .fillMaxWidth(),
@@ -176,7 +185,7 @@ fun AudioReactiveAvatar(
 
     outerScaleAnimation.animateTo(
       targetValue = targetOuterScale,
-      animationSpec = spring(dampingRatio = 0.6f, stiffness = 60f)
+      animationSpec = composeSpring(dampingRatio = 0.6f, stiffness = 60f)
     )
   }
 
@@ -192,9 +201,9 @@ fun AudioReactiveAvatar(
     innerScaleAnimation.animateTo(
       targetValue = targetInnerScale,
       animationSpec =
-      spring(
-        dampingRatio = Spring.DampingRatioLowBouncy,
-        stiffness = Spring.StiffnessLow
+      composeSpring(
+        dampingRatio = composeSpring.DampingRatioLowBouncy,
+        stiffness = composeSpring.StiffnessLow
       )
     )
   }
@@ -248,30 +257,15 @@ fun AudioReactiveAvatar(
 
 @Composable
 fun AudioVisualizer(
-  frequencyMapFlow: Flow<Map<Float, Float>>,
+  frequencyMap: Map<Float, Float>, // Flowからシンプルなマップに変更
   modifier: Modifier = Modifier,
   barColor: Color = AudioPlayerAppTheme.colors.primary,
 ) {
-  val rawFrequencyMap by frequencyMapFlow.collectAsState(initial = emptyMap())
-  // 低域通過フィルタを使った平滑化を適用するための状態
-  var smoothedFrequencyMap by remember { mutableStateOf(rawFrequencyMap) }
-
-  // 平滑化処理：ComposeのLaunchedEffect内で低頻度に更新
-  LaunchedEffect(rawFrequencyMap) {
-    // 過去の状態との補間処理
-    smoothedFrequencyMap =
-      rawFrequencyMap
-        .map { (frequency, currentMagnitude) ->
-          val previousMagnitude = smoothedFrequencyMap[frequency] ?: currentMagnitude
-          val newMagnitude = previousMagnitude * 0.8f + currentMagnitude * 0.2f
-          frequency to newMagnitude
-        }
-        .toMap()
-  }
+  // 直接マップを使用するのでFlowを収集する必要がなくなる
 
   Canvas(modifier = modifier) {
-    if (smoothedFrequencyMap.isNotEmpty()) {
-      val sortedEntries = smoothedFrequencyMap.toSortedMap()
+    if (frequencyMap.isNotEmpty()) {
+      val sortedEntries = frequencyMap.toSortedMap()
       val maxMagnitude = sortedEntries.values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
       val barWidth = size.width / sortedEntries.size
       sortedEntries.entries.forEachIndexed { index, entry ->
