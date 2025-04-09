@@ -28,7 +28,7 @@ fun rememberSynchronizedAudioLevel(
       dampingRatio = Spring.DampingRatioLowBouncy,
       stiffness = Spring.StiffnessLow
     ),
-  minFps: Float = 30f // 最低フレームレート
+  minFps: Float = 30f, // 最低フレームレート
 ): State<Float> {
   // 現在の音量レベル
   val audioLevelState = remember { mutableStateOf(initialValue) }
@@ -73,7 +73,7 @@ fun rememberSynchronizedAudioLevel(
 @Composable
 fun rememberSynchronizedFrequencyMap(
   frequencyMapFlow: Flow<Map<Float, Float>>,
-  minFps: Float = 30f
+  minFps: Float = 30f,
 ): State<Map<Float, Float>> {
   // 現在の周波数マップ
   var currentMap by remember { mutableStateOf<Map<Float, Float>>(emptyMap()) }

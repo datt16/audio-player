@@ -1,8 +1,6 @@
 package io.github.datt16.audioplayer.screens.home
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring as composeSpring
-import androidx.compose.animation.core.spring as composeSpring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,11 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
@@ -43,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 import io.github.datt16.audioplayer.viewmodels.HomeViewModel
+import androidx.compose.animation.core.Spring as composeSpring
+import androidx.compose.animation.core.spring as composeSpring
 
 @Composable
 fun HomeScreen(
@@ -54,18 +58,18 @@ fun HomeScreen(
 
   // 同期された音量レベル - フレームレート制限とスムーズなアニメーションを提供
   val audioLevel by
-  rememberSynchronizedAudioLevel(
-    audioLevelFlow = viewModel.audioLevelFlow,
-    initialValue = 0f,
-    minFps = 60f // 高いフレームレートで滑らかなアニメーション
-  )
+    rememberSynchronizedAudioLevel(
+      audioLevelFlow = viewModel.audioLevelFlow,
+      initialValue = 0f,
+      minFps = 60f // 高いフレームレートで滑らかなアニメーション
+    )
 
   // 同期された周波数マップ - ビジュアライザー用
   val frequencyMap by
-  rememberSynchronizedFrequencyMap(
-    frequencyMapFlow = viewModel.audioFrequencyMapFlow,
-    minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
-  )
+    rememberSynchronizedFrequencyMap(
+      frequencyMapFlow = viewModel.audioFrequencyMapFlow,
+      minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
+    )
 
   LaunchedEffect(Unit) {
     viewModel.startPlayback("https://storage.googleapis.com/exoplayer-test-media-0/play.mp3")
@@ -76,27 +80,64 @@ fun HomeScreen(
     viewModel.playbackFlow.collect { (progress, _) -> progressPercentage = progress }
   }
 
-  Column(modifier = modifier
-    .fillMaxWidth()
-    .padding(horizontal = 16.dp)) {
-    // アバター写真と音量に反応するアニメーション
-    AudioReactiveAvatar(
-      audioLevel = audioLevel, // 同期された音量レベルを使用
-      modifier = Modifier
-        .aspectRatio(1f)
-        .size(200.dp)
-        .padding(vertical = 16.dp),
-    )
+  // ページャーの状態管理
+  val pagerState = rememberPagerState(initialPage = 0) { 2 }
 
-    // 従来のオーディオビジュアライザー - 同期された周波数マップを使用
-    AudioVisualizer(
-      frequencyMap = frequencyMap, // 直接Flowではなく同期されたMapを使用
-      modifier = Modifier
-        .height(200.dp)
-        .fillMaxWidth(),
-    )
+  Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+    // スワイプで切り替えられるコンテンツ - 中央寄せ
+    HorizontalPager(state = pagerState, modifier = Modifier.height(250.dp).fillMaxWidth()) { page ->
+      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when (page) {
+          0 -> {
+            // アバター写真と音量に反応するアニメーション - 中央寄せ
+            AudioReactiveAvatar(
+              audioLevel = audioLevel,
+              modifier = Modifier.aspectRatio(1f).padding(vertical = 16.dp),
+            )
+          }
+          1 -> {
+            // オーディオビジュアライザー - 中央寄せ
+            AudioVisualizer(
+              frequencyMap = frequencyMap,
+              modifier =
+              Modifier.fillMaxWidth(0.9f) // 少し余白を持たせる
+                .fillMaxHeight(0.9f), // 少し余白を持たせる
+            )
+          }
+        }
+      }
+    }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    // シンプルなインジケーターとしてドットだけ表示
+    Box(
+      modifier = Modifier.fillMaxWidth().height(24.dp), // 少し高さを増やして空間を確保
+      contentAlignment = Alignment.Center
+    ) {
+      Row(modifier = Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        // シンプルなドットインジケーター
+        for (i in 0..1) {
+          val isSelected = pagerState.currentPage == i
+          Box(
+            modifier =
+            Modifier.padding(horizontal = 4.dp)
+              .size(if (isSelected) 8.dp else 6.dp)
+              .background(
+                color =
+                if (isSelected) {
+                  AudioPlayerAppTheme.colors.primary
+                } else {
+                  AudioPlayerAppTheme.colors.primary.copy(
+                    alpha = 0.3f
+                  )
+                },
+                shape = CircleShape
+              )
+          )
+        }
+      }
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
 
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
       val duration = viewModel.duration
@@ -210,26 +251,19 @@ fun AudioReactiveAvatar(
 
   // 正円を維持するためにアスペクト比1:1のBoxを使用
   Box(
-    modifier =
-    modifier
-      .aspectRatio(1f) // 正円を維持するためにアスペクト比を1:1に固定
-      .size(200.dp), // サイズを固定して正円を確保
+    modifier = modifier.aspectRatio(1f), // 正円を維持するためにアスペクト比を1:1に固定
     contentAlignment = Alignment.Center
   ) {
     // 最も外側の円
     Surface(
-      modifier = Modifier
-        .size(outerSizeDp)
-        .scale(outerScaleAnimation.value),
+      modifier = Modifier.size(outerSizeDp).scale(outerScaleAnimation.value),
       color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.08f),
       shape = CircleShape
     ) {}
 
     // 内側の円
     Surface(
-      modifier = Modifier
-        .size(innerSizeDp)
-        .scale(innerScaleAnimation.value),
+      modifier = Modifier.size(innerSizeDp).scale(innerScaleAnimation.value),
       color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.15f),
       shape = CircleShape
     ) {}
@@ -237,8 +271,7 @@ fun AudioReactiveAvatar(
     // 中央のアバター写真
     Surface(
       modifier =
-      Modifier
-        .size(baseSizeDp)
+      Modifier.size(baseSizeDp)
         .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
         .clip(CircleShape),
       color = AudioPlayerAppTheme.colors.primary
@@ -246,8 +279,7 @@ fun AudioReactiveAvatar(
       // ここに将来的に実際の写真を表示する予定
       Box(
         modifier =
-        Modifier
-          .fillMaxWidth()
+        Modifier.fillMaxWidth()
           .aspectRatio(1f)
           .background(AudioPlayerAppTheme.colors.primary)
       )
