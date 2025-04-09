@@ -8,14 +8,15 @@ import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
-import io.github.datt16.audioplayer.core.player.PlaybackManager
+import javax.inject.Inject
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class HomeViewModel
+@Inject
+constructor(
   private val playbackManager: ExoPlayerPlaybackManager,
   private val audioLevelManager: AudioLevelManager,
 ) : ViewModel() {

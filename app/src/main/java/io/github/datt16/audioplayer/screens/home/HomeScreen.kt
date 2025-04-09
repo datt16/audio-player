@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,15 +65,19 @@ fun HomeScreen(
     viewModel.playbackFlow.collect { (progress, _) -> progressPercentage = progress }
   }
 
-  Column(modifier = modifier
-    .fillMaxWidth()
-    .padding(horizontal = 16.dp)) {
+  Column(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp)
+  ) {
+
     // アバター写真と音量に反応するアニメーション
     AudioReactiveAvatar(
       audioLevel = audioLevel,
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(200.dp)
+      modifier =
+      Modifier
+        .aspectRatio(1f) // 正円を維持するためにアスペクト比を1:1に固定
+        .size(200.dp)
         .padding(vertical = 16.dp),
     )
 
