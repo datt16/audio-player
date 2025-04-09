@@ -31,15 +31,14 @@ class ExoPlayerPlaybackManager @Inject constructor(
     val mediaItem = MediaItem.fromUri(uri)
     val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
 
+    exoPlayer.addListener(this)
     exoPlayer.setMediaSource(mediaSource)
     exoPlayer.prepare()
-
-    _audioVisualizer = initializeAudioVisualizer()
   }
 
-  private fun initializeAudioVisualizer(): AudioVisualizer? {
+  private fun initializeAudioVisualizer(sessionId: Int): AudioVisualizer? {
     return try {
-      AudioVisualizer(0)
+      AudioVisualizer(sessionId)
     } catch (e: Exception) {
       Timber.tag("AudioVisualizer").e(e)
       null
@@ -77,5 +76,10 @@ class ExoPlayerPlaybackManager @Inject constructor(
 
   override val duration: Long by lazy {
     exoPlayer.duration
+  }
+
+  override fun onAudioSessionIdChanged(audioSessionId: Int) {
+    super.onAudioSessionIdChanged(audioSessionId)
+    _audioVisualizer = initializeAudioVisualizer(audioSessionId)
   }
 }
