@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
 import io.github.datt16.audioplayer.core.player.PlaybackManager
 import kotlinx.coroutines.flow.emptyFlow
@@ -16,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
   private val playbackManager: ExoPlayerPlaybackManager,
+  private val audioLevelManager: AudioLevelManager,
 ) : ViewModel() {
 
   val isPlaying
@@ -26,6 +28,8 @@ class HomeViewModel @Inject constructor(
 
   val audioFrequencyMapFlow
     get() = playbackManager.audioVisualizer?.frequencyMapFlow ?: emptyFlow()
+
+  val audioLevelFlow = audioLevelManager.audioLevelFlow
 
   fun startPlayback(url: String) {
     viewModelScope.launch {
