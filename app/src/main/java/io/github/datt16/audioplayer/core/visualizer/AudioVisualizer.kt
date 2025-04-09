@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlin.math.hypot
 
 class AudioVisualizer(
-  audioSessionId: Int
+  audioSessionId: Int,
 ) {
   // TODO: インスタンス化時にパーミッションリクエストで例外が返る可能性があるので、audioVisualizerをnullableにする
   private val frequencyMapMutableSharedFlow = MutableSharedFlow<Map<Float, Float>>(replay = 1)

@@ -8,9 +8,9 @@ import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
-import javax.inject.Inject
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @HiltViewModel

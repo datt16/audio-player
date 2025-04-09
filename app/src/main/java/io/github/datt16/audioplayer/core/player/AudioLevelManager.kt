@@ -1,11 +1,11 @@
 package io.github.datt16.audioplayer.core.player
 
 import io.github.datt16.audioplayer.core.player.processor.AudioLevelProcessor
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /** オーディオレベルをSharedFlowとして公開するマネージャークラス */
 @Singleton

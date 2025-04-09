@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +69,6 @@ fun HomeScreen(
       .fillMaxWidth()
       .padding(horizontal = 16.dp)
   ) {
-
     // アバター写真と音量に反応するアニメーション
     AudioReactiveAvatar(
       audioLevel = audioLevel,

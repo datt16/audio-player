@@ -11,10 +11,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.CustomRenderersFactory
 import io.github.datt16.audioplayer.core.player.MediaPlayerPlaybackManager
 import io.github.datt16.audioplayer.core.player.PlaybackManager
-import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.processor.AudioLevelProcessor
 import javax.inject.Singleton
 
@@ -39,7 +39,7 @@ object PlayerModule {
   @Singleton
   fun provideExoPlayer(
     @ApplicationContext context: Context,
-    audioLevelProcessor: AudioLevelProcessor
+    audioLevelProcessor: AudioLevelProcessor,
   ): ExoPlayer {
     val renderersFactory = CustomRenderersFactory(context, audioLevelProcessor)
     return ExoPlayer.Builder(context, renderersFactory).build()

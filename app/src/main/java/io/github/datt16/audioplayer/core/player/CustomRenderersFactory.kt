@@ -18,7 +18,7 @@ constructor(context: Context, private val audioLevelProcessor: AudioLevelProcess
   override fun buildAudioSink(
     context: Context,
     enableFloatOutput: Boolean,
-    enableAudioTrackPlaybackParams: Boolean
+    enableAudioTrackPlaybackParams: Boolean,
   ): AudioSink {
     return buildCustomAudioSink(context, enableFloatOutput, enableAudioTrackPlaybackParams)
   }
@@ -26,7 +26,7 @@ constructor(context: Context, private val audioLevelProcessor: AudioLevelProcess
   private fun buildCustomAudioSink(
     context: Context,
     enableFloatOutput: Boolean,
-    enableAudioTrackPlaybackParams: Boolean
+    enableAudioTrackPlaybackParams: Boolean,
   ): AudioSink {
     return DefaultAudioSink.Builder(context)
       .setAudioProcessors(arrayOf(audioLevelProcessor))

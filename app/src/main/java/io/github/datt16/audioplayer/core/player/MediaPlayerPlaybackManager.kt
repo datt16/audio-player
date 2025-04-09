@@ -3,22 +3,14 @@ package io.github.datt16.audioplayer.core.player
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
-import android.provider.MediaStore.Audio
-import androidx.annotation.OptIn
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import io.github.datt16.audioplayer.core.visualizer.AudioVisualizer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Singleton
 
 @UnstableApi
 class MediaPlayerPlaybackManager @Inject constructor(
@@ -70,7 +62,6 @@ class MediaPlayerPlaybackManager @Inject constructor(
     val mediaPlayer = _mediaPlayer ?: return
     mediaPlayer.seekTo((mediaPlayer.duration * playbackPercentage).toInt())
   }
-
 
   private fun initializeAudioVisualizer(sessionId: Int): AudioVisualizer? {
     return try {
