@@ -25,7 +25,7 @@ object PlayerModule {
   @Provides
   @Singleton
   fun provideAudioLevelProcessor(): AudioLevelProcessor {
-    return AudioLevelProcessor().apply { smoothingFactor = 0.15f }
+    return AudioLevelProcessor().apply { smoothingFactor = 0.2f }
   }
 
   @Provides

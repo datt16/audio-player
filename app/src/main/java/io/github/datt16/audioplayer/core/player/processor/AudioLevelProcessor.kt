@@ -9,6 +9,7 @@ import java.nio.ByteOrder
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.abs
+import kotlin.math.pow
 
 /** オーディオレベル（ゲイン）を監視するためのオーディオプロセッサー 元のオーディオデータは変更せず、音量レベル情報のみを抽出します */
 @Singleton
@@ -28,6 +29,14 @@ class AudioLevelProcessor @Inject constructor() : AudioProcessor {
 
   // 平滑化の係数（0.0f〜1.0f）：値が小さいほど滑らかに変化
   var smoothingFactor: Float = 0.1f
+
+  // 音量マッピングのパラメータ
+  // 会話の音量を0.3〜0.8にマッピングするための調整
+  var gainAmplification: Float = 4.0f // ゲイン増幅係数（大きいほど小さな音も拾う）
+  var gainExponent: Float = 0.6f // 指数（1未満だと小さな音が強調される）
+  var minOutputLevel: Float = 0.0f // 出力の最小値
+  var maxOutputLevel: Float = 1.0f // 出力の最大値
+  var midBoostThreshold: Float = 0.3f // 中音量強調の閾値
 
   // 音量レベルが変更された時のリスナー
   var onLevelChanged: ((level: Float) -> Unit)? = null
@@ -87,10 +96,27 @@ class AudioLevelProcessor @Inject constructor() : AudioProcessor {
     }
 
     // 全チャンネルの平均音量を計算
-    val newLevel = sum / (sampleCount * channelCount)
+    var rawLevel = sum / (sampleCount * channelCount)
+
+    // 音量レベルの非線形変換を適用
+    // 1. ゲイン増幅を適用（小さな音も拾えるように）
+    var adjustedLevel = (rawLevel * gainAmplification).coerceAtMost(1.0f)
+
+    // 2. 指数関数で非線形マッピング（小音量を強調）
+    adjustedLevel = adjustedLevel.pow(gainExponent)
+
+    // 3. 出力範囲の調整（最小値を0.0ではなく設定値に）
+    adjustedLevel = minOutputLevel + (maxOutputLevel - minOutputLevel) * adjustedLevel
+
+    // 4. 中音量の強調（会話レベルを0.3-0.8の範囲に押し上げる）
+    if (adjustedLevel > midBoostThreshold && adjustedLevel < 0.8f) {
+      // 0.3〜0.8の範囲を、より高い0.3〜0.8の範囲に再マッピング
+      val boostFactor = 0.5f / (0.8f - midBoostThreshold) // 中音量範囲を0.5の幅に圧縮
+      adjustedLevel = midBoostThreshold + (adjustedLevel - midBoostThreshold) * boostFactor
+    }
 
     // 平滑化（滑らかに変化させる）
-    _currentLevel = _currentLevel * (1 - smoothingFactor) + newLevel * smoothingFactor
+    _currentLevel = _currentLevel * (1 - smoothingFactor) + adjustedLevel * smoothingFactor
 
     // リスナーがあれば呼び出す
     onLevelChanged?.invoke(_currentLevel)
