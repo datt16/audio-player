@@ -74,9 +74,8 @@ class ExoPlayerPlaybackManager @Inject constructor(
   override val isPlaying: Boolean
     get() = exoPlayer.isPlaying
 
-  override val duration: Long by lazy {
-    exoPlayer.duration
-  }
+  override val duration: Long
+    get() = exoPlayer.duration
 
   override fun onAudioSessionIdChanged(audioSessionId: Int) {
     super.onAudioSessionIdChanged(audioSessionId)

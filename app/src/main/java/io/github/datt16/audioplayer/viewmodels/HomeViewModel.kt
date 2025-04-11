@@ -18,7 +18,7 @@ class HomeViewModel
 @Inject
 constructor(
   private val playbackManager: ExoPlayerPlaybackManager,
-  private val audioLevelManager: AudioLevelManager,
+  audioLevelManager: AudioLevelManager,
 ) : ViewModel() {
 
   val isPlaying
