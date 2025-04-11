@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,19 +58,16 @@ fun HomeScreen(
   var playbackIcon by remember { mutableStateOf(Icons.Default.PlayArrow) }
 
   // 同期された音量レベル - フレームレート制限とスムーズなアニメーションを提供
-  val audioLevel by
-    rememberSynchronizedAudioLevel(
-      audioLevelFlow = viewModel.audioLevelFlow,
-      initialValue = 0f,
-      minFps = 60f // 高いフレームレートで滑らかなアニメーション
-    )
+  val audioLevel by rememberSynchronizedAudioLevel(
+    audioLevelFlow = viewModel.audioLevelFlow,
+    initialValue = 0f,
+    minFps = 60f // 高いフレームレートで滑らかなアニメーション
+  )
 
   // 同期された周波数マップ - ビジュアライザー用
-  val frequencyMap by
-    rememberSynchronizedFrequencyMap(
-      frequencyMapFlow = viewModel.audioFrequencyMapFlow,
-      minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
-    )
+  val frequencyMap by rememberSynchronizedFrequencyMap(
+    frequencyMapFlow = viewModel.audioFrequencyMapFlow, minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
+  )
 
   LaunchedEffect(Unit) {
     viewModel.startPlayback("https://storage.googleapis.com/exoplayer-test-media-0/play.mp3")
@@ -83,24 +81,35 @@ fun HomeScreen(
   // ページャーの状態管理
   val pagerState = rememberPagerState(initialPage = 0) { 2 }
 
-  Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+  Column(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp)
+  ) {
     // スワイプで切り替えられるコンテンツ - 中央寄せ
-    HorizontalPager(state = pagerState, modifier = Modifier.height(250.dp).fillMaxWidth()) { page ->
+    HorizontalPager(
+      state = pagerState, modifier = Modifier
+        .height(250.dp)
+        .fillMaxWidth()
+    ) { page ->
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when (page) {
           0 -> {
             // アバター写真と音量に反応するアニメーション - 中央寄せ
             AudioReactiveAvatar(
               audioLevel = audioLevel,
-              modifier = Modifier.aspectRatio(1f).padding(vertical = 16.dp),
+              modifier = Modifier
+                .aspectRatio(1f)
+                .padding(vertical = 16.dp),
             )
           }
+
           1 -> {
             // オーディオビジュアライザー - 中央寄せ
             AudioVisualizer(
               frequencyMap = frequencyMap,
-              modifier =
-              Modifier.fillMaxWidth(0.9f) // 少し余白を持たせる
+              modifier = Modifier
+                .fillMaxWidth(0.9f) // 少し余白を持たせる
                 .fillMaxHeight(0.9f), // 少し余白を持たせる
             )
           }
@@ -110,7 +119,9 @@ fun HomeScreen(
 
     // シンプルなインジケーターとしてドットだけ表示
     Box(
-      modifier = Modifier.fillMaxWidth().height(24.dp), // 少し高さを増やして空間を確保
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(24.dp), // 少し高さを増やして空間を確保
       contentAlignment = Alignment.Center
     ) {
       Row(modifier = Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -118,19 +129,17 @@ fun HomeScreen(
         for (i in 0..1) {
           val isSelected = pagerState.currentPage == i
           Box(
-            modifier =
-            Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier
+              .padding(horizontal = 4.dp)
               .size(if (isSelected) 8.dp else 6.dp)
               .background(
-                color =
-                if (isSelected) {
+                color = if (isSelected) {
                   AudioPlayerAppTheme.colors.primary
                 } else {
                   AudioPlayerAppTheme.colors.primary.copy(
                     alpha = 0.3f
                   )
-                },
-                shape = CircleShape
+                }, shape = CircleShape
               )
           )
         }
@@ -139,41 +148,47 @@ fun HomeScreen(
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-      val duration = viewModel.duration
-      val currentPositionMinutes = (duration * progressPercentage / 1000f / 60).toInt()
-      val currentPositionSeconds = (duration * progressPercentage / 1000f % 60).toInt()
+    PlaybackController(viewModel, progressPercentage, playbackIcon)
+  }
+}
 
-      IconButton(
-        onClick = {
-          if (viewModel.isPlaying) {
-            viewModel.pause()
-            playbackIcon = Icons.Default.PlayArrow
-          } else {
-            playbackIcon = Icons.Outlined.PlayArrow
-            viewModel.play()
-          }
+@Composable
+private fun PlaybackController(viewModel: HomeViewModel, progressPercentage: Float, playbackIcon: ImageVector) {
+  var progressPercentage1 = progressPercentage
+  var playbackIcon1 = playbackIcon
+  Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    val duration = viewModel.duration
+    val currentPositionMinutes = (duration * progressPercentage1 / 1000f / 60).toInt()
+    val currentPositionSeconds = (duration * progressPercentage1 / 1000f % 60).toInt()
+
+    IconButton(
+      onClick = {
+        if (viewModel.isPlaying) {
+          viewModel.pause()
+          playbackIcon1 = Icons.Default.PlayArrow
+        } else {
+          playbackIcon1 = Icons.Outlined.PlayArrow
+          viewModel.play()
         }
-      ) {
-        Icon(modifier = Modifier.size(24.dp), imageVector = playbackIcon, contentDescription = null)
-      }
-      Spacer(modifier = Modifier.width(4.dp))
-      Slider(
-        onValueChange = { progressPercentage = it },
-        onValueChangeFinished = { viewModel.seekTo(progressPercentage) },
-        modifier = Modifier.weight(1f),
-        value = progressPercentage,
-        valueRange = 0f..1f,
-      )
-      Spacer(modifier = Modifier.width(8.dp))
-      Text(
-        text =
-        "$currentPositionMinutes".padStart(2, '0') +
-          ":" +
-          "$currentPositionSeconds".padStart(2, '0'),
-        style = AudioPlayerAppTheme.typography.labelMedium,
-      )
+      }) {
+      Icon(modifier = Modifier.size(24.dp), imageVector = playbackIcon1, contentDescription = null)
     }
+    Spacer(modifier = Modifier.width(4.dp))
+    Slider(
+      onValueChange = { progressPercentage1 = it },
+      onValueChangeFinished = { viewModel.seekTo(progressPercentage1) },
+      modifier = Modifier.weight(1f),
+      value = progressPercentage1,
+      valueRange = 0f..1f,
+    )
+    Spacer(modifier = Modifier.width(8.dp))
+    Text(
+      text = "$currentPositionMinutes".padStart(
+        2,
+        '0'
+      ) + ":" + "$currentPositionSeconds".padStart(2, '0'),
+      style = AudioPlayerAppTheme.typography.labelMedium,
+    )
   }
 }
 
@@ -200,14 +215,13 @@ fun AudioReactiveAvatar(
   val thresholdLevel = 0.05f
 
   // 実際のスケールを計算（閾値以下ならサイズを小さくする）
-  val effectiveAudioLevel =
-    if (audioLevel < thresholdLevel) {
-      // 閾値以下の場合、円を最小サイズに縮小
-      0f
-    } else {
-      // 閾値以上の場合は通常通りのレベル（ただし閾値分を引いて正規化）
-      (audioLevel - thresholdLevel) / (1f - thresholdLevel)
-    }
+  val effectiveAudioLevel = if (audioLevel < thresholdLevel) {
+    // 閾値以下の場合、円を最小サイズに縮小
+    0f
+  } else {
+    // 閾値以上の場合は通常通りのレベル（ただし閾値分を引いて正規化）
+    (audioLevel - thresholdLevel) / (1f - thresholdLevel)
+  }
 
   // 外側の円のスケールアニメーション
   val outerScaleAnimation = remember { Animatable(1f) }
@@ -240,11 +254,8 @@ fun AudioReactiveAvatar(
     val targetInnerScale = minScale + (effectiveAudioLevel * maxAdditionalScale)
 
     innerScaleAnimation.animateTo(
-      targetValue = targetInnerScale,
-      animationSpec =
-      composeSpring(
-        dampingRatio = composeSpring.DampingRatioLowBouncy,
-        stiffness = composeSpring.StiffnessLow
+      targetValue = targetInnerScale, animationSpec = composeSpring(
+        dampingRatio = composeSpring.DampingRatioLowBouncy, stiffness = composeSpring.StiffnessLow
       )
     )
   }
@@ -256,30 +267,33 @@ fun AudioReactiveAvatar(
   ) {
     // 最も外側の円
     Surface(
-      modifier = Modifier.size(outerSizeDp).scale(outerScaleAnimation.value),
+      modifier = Modifier
+        .size(outerSizeDp)
+        .scale(outerScaleAnimation.value),
       color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.08f),
       shape = CircleShape
     ) {}
 
     // 内側の円
     Surface(
-      modifier = Modifier.size(innerSizeDp).scale(innerScaleAnimation.value),
+      modifier = Modifier
+        .size(innerSizeDp)
+        .scale(innerScaleAnimation.value),
       color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.15f),
       shape = CircleShape
     ) {}
 
     // 中央のアバター写真
     Surface(
-      modifier =
-      Modifier.size(baseSizeDp)
+      modifier = Modifier
+        .size(baseSizeDp)
         .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
-        .clip(CircleShape),
-      color = AudioPlayerAppTheme.colors.primary
+        .clip(CircleShape), color = AudioPlayerAppTheme.colors.primary
     ) {
       // ここに将来的に実際の写真を表示する予定
       Box(
-        modifier =
-        Modifier.fillMaxWidth()
+        modifier = Modifier
+          .fillMaxWidth()
           .aspectRatio(1f)
           .background(AudioPlayerAppTheme.colors.primary)
       )
