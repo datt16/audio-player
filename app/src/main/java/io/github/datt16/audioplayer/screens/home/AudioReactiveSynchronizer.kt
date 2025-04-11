@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +32,7 @@ fun rememberSynchronizedAudioLevel(
   minFps: Float = 30f, // 最低フレームレート
 ): State<Float> {
   // 現在の音量レベル
-  val audioLevelState = remember { mutableStateOf(initialValue) }
+  val audioLevelState = remember { mutableFloatStateOf(initialValue) }
 
   // アニメーション対象の値（スムーズに変化）
   val animatedLevel = remember { Animatable(initialValue) }
@@ -43,7 +44,7 @@ fun rememberSynchronizedAudioLevel(
     var lastUpdateTimeMs = 0L
 
     // 音量レベルを取得
-    launch { audioLevelFlow.collect { newLevel -> audioLevelState.value = newLevel } }
+    launch { audioLevelFlow.collect { newLevel -> audioLevelState.floatValue = newLevel } }
 
     // フレームレートを制限しながらアニメーション更新
     launch {
@@ -53,7 +54,7 @@ fun rememberSynchronizedAudioLevel(
         // 前回の更新から最小フレーム時間が経過していれば更新
         if (currentTimeMs - lastUpdateTimeMs >= minFrameTimeMs) {
           animatedLevel.animateTo(
-            targetValue = audioLevelState.value,
+            targetValue = audioLevelState.floatValue,
             animationSpec = animationSpec
           )
           lastUpdateTimeMs = currentTimeMs
@@ -98,11 +99,9 @@ fun rememberSynchronizedFrequencyMap(
           val interpolatedMap =
             currentMap
               .map { (frequency, magnitude) ->
-                val previousMagnitude =
-                  smoothedMap.value[frequency] ?: magnitude
+                val previousMagnitude = smoothedMap.value[frequency] ?: magnitude
                 // 80%は前の値、20%は新しい値を使用した平滑化
-                val smoothedMagnitude =
-                  previousMagnitude * 0.8f + magnitude * 0.2f
+                val smoothedMagnitude = previousMagnitude * 0.8f + magnitude * 0.2f
                 frequency to smoothedMagnitude
               }
               .toMap()
