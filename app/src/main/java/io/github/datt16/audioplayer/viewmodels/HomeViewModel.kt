@@ -58,8 +58,8 @@ constructor(
         val url = "http://10.0.2.2:8888/api/media/$mediaId"
         playbackManager.setup(url.toUri())
         playbackManager.play()
-//        _currentPlayingUrl.value = url
-//        _isPlaying.value = true
+        _currentPlayingUrl.value = url
+        _isPlaying.value = true
       } catch (e: Exception) {
         // エラーハンドリング
         _isPlaying.value = false
@@ -73,10 +73,12 @@ constructor(
   }
 
   fun play() {
+    _isPlaying.value = true
     playbackManager.play()
   }
 
   fun pause() {
+    _isPlaying.value = false
     playbackManager.pause()
   }
 
