@@ -66,7 +66,8 @@ fun HomeScreen(
 
   // 同期された周波数マップ - ビジュアライザー用
   val frequencyMap by rememberSynchronizedFrequencyMap(
-    frequencyMapFlow = viewModel.audioFrequencyMapFlow, minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
+    frequencyMapFlow = viewModel.audioFrequencyMapFlow,
+    minFps = 30f // ビジュアライザーは若干低いフレームレートでも十分
   )
 
   LaunchedEffect(Unit) {
@@ -88,7 +89,8 @@ fun HomeScreen(
   ) {
     // スワイプで切り替えられるコンテンツ - 中央寄せ
     HorizontalPager(
-      state = pagerState, modifier = Modifier
+      state = pagerState,
+      modifier = Modifier
         .height(250.dp)
         .fillMaxWidth()
     ) { page ->
@@ -139,7 +141,8 @@ fun HomeScreen(
                   AudioPlayerAppTheme.colors.primary.copy(
                     alpha = 0.3f
                   )
-                }, shape = CircleShape
+                },
+                shape = CircleShape
               )
           )
         }
@@ -170,7 +173,8 @@ private fun PlaybackController(viewModel: HomeViewModel, progressPercentage: Flo
           playbackIcon1 = Icons.Outlined.PlayArrow
           viewModel.play()
         }
-      }) {
+      }
+    ) {
       Icon(modifier = Modifier.size(24.dp), imageVector = playbackIcon1, contentDescription = null)
     }
     Spacer(modifier = Modifier.width(4.dp))
@@ -254,8 +258,10 @@ fun AudioReactiveAvatar(
     val targetInnerScale = minScale + (effectiveAudioLevel * maxAdditionalScale)
 
     innerScaleAnimation.animateTo(
-      targetValue = targetInnerScale, animationSpec = composeSpring(
-        dampingRatio = composeSpring.DampingRatioLowBouncy, stiffness = composeSpring.StiffnessLow
+      targetValue = targetInnerScale,
+      animationSpec = composeSpring(
+        dampingRatio = composeSpring.DampingRatioLowBouncy,
+        stiffness = composeSpring.StiffnessLow
       )
     )
   }
@@ -288,7 +294,8 @@ fun AudioReactiveAvatar(
       modifier = Modifier
         .size(baseSizeDp)
         .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
-        .clip(CircleShape), color = AudioPlayerAppTheme.colors.primary
+        .clip(CircleShape),
+      color = AudioPlayerAppTheme.colors.primary
     ) {
       // ここに将来的に実際の写真を表示する予定
       Box(

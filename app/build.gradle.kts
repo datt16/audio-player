@@ -80,6 +80,14 @@ dependencies {
   androidTestImplementation(libs.androidx.junit)
   detektPlugins(libs.detekt.formatting)
   detektPlugins(libs.detekt.compose.rules)
+
+  // Retrofit
+  implementation(libs.retrofit.core)
+  implementation(libs.retrofit.kotlinx.serialization)
+  
+  // OkHttp
+  implementation(libs.okhttp.core)
+  implementation(libs.okhttp.logging)
 }
 
 detekt {
