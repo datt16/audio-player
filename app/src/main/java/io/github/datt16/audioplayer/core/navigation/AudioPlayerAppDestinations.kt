@@ -5,4 +5,7 @@ import kotlinx.serialization.Serializable
 object AudioPlayerAppDestinations {
   @Serializable
   object Home
+
+  @Serializable
+  object GlobalSettings
 }
