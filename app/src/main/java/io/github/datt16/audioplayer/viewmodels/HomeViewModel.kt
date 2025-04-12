@@ -10,16 +10,19 @@ import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
+import io.github.datt16.audioplayer.screens.home.HomeUiState
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
-import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class HomeViewModel
+@Inject
+constructor(
   private val playbackManager: ExoPlayerPlaybackManager,
   audioLevelManager: AudioLevelManager,
   private val mediaRepository: MediaRepository,
@@ -42,6 +45,9 @@ class HomeViewModel @Inject constructor(
   private val _isLoading = MutableStateFlow(false)
   val isLoading = _isLoading.asStateFlow()
 
+  private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
+  val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
   fun startPlayback(url: String) {
     viewModelScope.launch {
       playbackManager.setup(url.toUri())
@@ -63,13 +69,14 @@ class HomeViewModel @Inject constructor(
 
   fun fetchMediaFiles() {
     viewModelScope.launch {
-      _isLoading.value = true
-      mediaRepository.getMediaFiles().onSuccess { files -> _mediaFiles.value = files }.onFailure {
-          error ->
-        Timber.e(error)
-        // エラーハンドリングが必要な場合は、ここでUIに通知するなどの処理を追加
-      }
-      _isLoading.value = false
+      _uiState.value = HomeUiState.Loading
+      mediaRepository
+        .getMediaFiles()
+        .onSuccess { files -> _uiState.value = HomeUiState.Success(files) }
+        .onFailure { error ->
+          _uiState.value =
+            HomeUiState.Error(message = error.message ?: "不明なエラーが発生しました")
+        }
     }
   }
 }
