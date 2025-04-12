@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,26 +48,36 @@ import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 import io.github.datt16.audioplayer.viewmodels.HomeViewModel
 
 @Composable
-fun HomeScreen(
-        modifier: Modifier = Modifier,
-        viewModel: HomeViewModel = hiltViewModel(),
-) {
+fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
   val uiState by viewModel.uiState.collectAsState()
+  val isPlaying by viewModel.isPlaying.collectAsState()
 
   LaunchedEffect(Unit) { viewModel.fetchMediaFiles() }
 
-  Column(modifier = modifier.fillMaxSize().padding(top = 16.dp)) {
+  Column(
+    modifier = modifier
+      .fillMaxSize()
+      .padding(top = 16.dp)
+  ) {
     // 固定部分（プログレスバーまで）
-    Box(modifier = Modifier.fillMaxWidth().height(250.dp)) {
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(250.dp)
+    ) {
       Column(
-              modifier = Modifier.fillMaxSize().padding(16.dp),
-              horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
       ) {
         // オーディオビジュアライザー
         val frequencyMap by viewModel.audioFrequencyMapFlow.collectAsState(initial = emptyMap())
         AudioVisualizer(
-                frequencyMap = frequencyMap,
-                modifier = Modifier.fillMaxWidth().height(48.dp)
+          frequencyMap = frequencyMap,
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -78,13 +89,14 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // 再生コントロール
-        val playbackProgress by viewModel.playbackFlow.collectAsState(null)
+        val playbackProgress by viewModel.playbackFlow.collectAsState(initial = null)
         PlaybackController(
-                viewModel = viewModel,
-                progressPercentage = playbackProgress?.first ?: 0f,
-                playbackIcon =
-                        if (viewModel.isPlaying) Icons.Outlined.PlayArrow
-                        else Icons.Default.PlayArrow
+          viewModel = viewModel,
+          progressPercentage = playbackProgress?.first ?: 0f,
+          playbackIcon = if (isPlaying) Icons.Outlined.PlayArrow else Icons.Default.PlayArrow,
+          onProgressPercentageChanged = {
+            // TODO
+          }
         )
       }
     }
@@ -92,18 +104,22 @@ fun HomeScreen(
     // スクロール可能なメディアファイルリスト部分
     when (uiState) {
       is HomeUiState.Loading -> {
-        Box(modifier = Modifier.fillMaxSize().padding(16.dp)) { CircularProgressIndicator() }
+        LoadingScreen(modifier = Modifier.fillMaxSize())
       }
+
       is HomeUiState.Success -> {
         MediaFileList(
-                mediaFiles = (uiState as HomeUiState.Success).mediaFiles,
-                onRefresh = { viewModel.fetchMediaFiles() }
+          mediaFiles = (uiState as HomeUiState.Success).mediaFiles,
+          viewModel = viewModel,
+          modifier = Modifier.fillMaxSize()
         )
       }
+
       is HomeUiState.Error -> {
-        ErrorContent(
-                message = (uiState as HomeUiState.Error).message,
-                onRefresh = { viewModel.fetchMediaFiles() }
+        ErrorScreen(
+          message = (uiState as HomeUiState.Error).message,
+          onRetry = { viewModel.fetchMediaFiles() },
+          modifier = Modifier.fillMaxSize()
         )
       }
     }
@@ -112,54 +128,56 @@ fun HomeScreen(
 
 @Composable
 private fun PlaybackController(
-        viewModel: HomeViewModel,
-        progressPercentage: Float,
-        playbackIcon: ImageVector
+  viewModel: HomeViewModel,
+  progressPercentage: Float,
+  playbackIcon: ImageVector,
+  onProgressPercentageChanged: (Float) -> Unit,
 ) {
-  var progressPercentage1 = progressPercentage
-  var playbackIcon1 = playbackIcon
+  val isPlaying by viewModel.isPlaying.collectAsState()
   Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
     val duration = viewModel.duration
-    val currentPositionMinutes = (duration * progressPercentage1 / 1000f / 60).toInt()
-    val currentPositionSeconds = (duration * progressPercentage1 / 1000f % 60).toInt()
+    val currentPositionMinutes = (duration * progressPercentage / 1000f / 60).toInt()
+    val currentPositionSeconds = (duration * progressPercentage / 1000f % 60).toInt()
 
     IconButton(
-            onClick = {
-              if (viewModel.isPlaying) {
-                viewModel.pause()
-                playbackIcon1 = Icons.Default.PlayArrow
-              } else {
-                playbackIcon1 = Icons.Outlined.PlayArrow
-                viewModel.play()
-              }
-            }
+      onClick = {
+        if (isPlaying) {
+          viewModel.pause()
+        } else {
+          viewModel.play()
+        }
+      }
     ) {
-      Icon(modifier = Modifier.size(24.dp), imageVector = playbackIcon1, contentDescription = null)
+      Icon(
+        modifier = Modifier.size(24.dp),
+        imageVector = playbackIcon,
+        contentDescription = if (isPlaying) "一時停止" else "再生"
+      )
     }
     Spacer(modifier = Modifier.width(4.dp))
     Slider(
-            onValueChange = { progressPercentage1 = it },
-            onValueChangeFinished = { viewModel.seekTo(progressPercentage1) },
-            modifier = Modifier.weight(1f),
-            value = progressPercentage1,
-            valueRange = 0f..1f,
+      onValueChange = onProgressPercentageChanged,
+      onValueChangeFinished = { viewModel.seekTo(progressPercentage) },
+      modifier = Modifier.weight(1f),
+      value = progressPercentage,
+      valueRange = 0f..1f,
     )
     Spacer(modifier = Modifier.width(8.dp))
     Text(
-            text =
-                    "$currentPositionMinutes".padStart(2, '0') +
-                            ":" +
-                            "$currentPositionSeconds".padStart(2, '0'),
-            style = AudioPlayerAppTheme.typography.labelMedium,
+      text =
+      "$currentPositionMinutes".padStart(2, '0') +
+        ":" +
+        "$currentPositionSeconds".padStart(2, '0'),
+      style = AudioPlayerAppTheme.typography.labelMedium,
     )
   }
 }
 
 @Composable
 fun AudioReactiveAvatar(
-        audioLevel: Float,
-        modifier: Modifier = Modifier,
-        avatarSize: Float = 0.6f,
+  audioLevel: Float,
+  modifier: Modifier = Modifier,
+  avatarSize: Float = 0.6f,
 ) {
   // プレースホルダーのサイズを基準値として定義
   val baseSizeDp = 100.dp
@@ -179,13 +197,13 @@ fun AudioReactiveAvatar(
 
   // 実際のスケールを計算（閾値以下ならサイズを小さくする）
   val effectiveAudioLevel =
-          if (audioLevel < thresholdLevel) {
-            // 閾値以下の場合、円を最小サイズに縮小
-            0f
-          } else {
-            // 閾値以上の場合は通常通りのレベル（ただし閾値分を引いて正規化）
-            (audioLevel - thresholdLevel) / (1f - thresholdLevel)
-          }
+    if (audioLevel < thresholdLevel) {
+      // 閾値以下の場合、円を最小サイズに縮小
+      0f
+    } else {
+      // 閾値以上の場合は通常通りのレベル（ただし閾値分を引いて正規化）
+      (audioLevel - thresholdLevel) / (1f - thresholdLevel)
+    }
 
   // 外側の円のスケールアニメーション
   val outerScaleAnimation = remember { Animatable(1f) }
@@ -203,8 +221,8 @@ fun AudioReactiveAvatar(
     val targetOuterScale = minScale + (effectiveAudioLevel * maxAdditionalScale)
 
     outerScaleAnimation.animateTo(
-            targetValue = targetOuterScale,
-            animationSpec = composeSpring(dampingRatio = 0.6f, stiffness = 60f)
+      targetValue = targetOuterScale,
+      animationSpec = composeSpring(dampingRatio = 0.6f, stiffness = 60f)
     )
   }
 
@@ -218,48 +236,54 @@ fun AudioReactiveAvatar(
     val targetInnerScale = minScale + (effectiveAudioLevel * maxAdditionalScale)
 
     innerScaleAnimation.animateTo(
-            targetValue = targetInnerScale,
-            animationSpec =
-                    composeSpring(
-                            dampingRatio = composeSpring.DampingRatioLowBouncy,
-                            stiffness = composeSpring.StiffnessLow
-                    )
+      targetValue = targetInnerScale,
+      animationSpec =
+      composeSpring(
+        dampingRatio = composeSpring.DampingRatioLowBouncy,
+        stiffness = composeSpring.StiffnessLow
+      )
     )
   }
 
   // 正円を維持するためにアスペクト比1:1のBoxを使用
   Box(
-          modifier = modifier.aspectRatio(1f), // 正円を維持するためにアスペクト比を1:1に固定
-          contentAlignment = Alignment.Center
+    modifier = modifier.aspectRatio(1f), // 正円を維持するためにアスペクト比を1:1に固定
+    contentAlignment = Alignment.Center
   ) {
     // 最も外側の円
     Surface(
-            modifier = Modifier.size(outerSizeDp).scale(outerScaleAnimation.value),
-            color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.08f),
-            shape = CircleShape
+      modifier = Modifier
+        .size(outerSizeDp)
+        .scale(outerScaleAnimation.value),
+      color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.08f),
+      shape = CircleShape
     ) {}
 
     // 内側の円
     Surface(
-            modifier = Modifier.size(innerSizeDp).scale(innerScaleAnimation.value),
-            color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.15f),
-            shape = CircleShape
+      modifier = Modifier
+        .size(innerSizeDp)
+        .scale(innerScaleAnimation.value),
+      color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.15f),
+      shape = CircleShape
     ) {}
 
     // 中央のアバター写真
     Surface(
-            modifier =
-                    Modifier.size(baseSizeDp)
-                            .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
-                            .clip(CircleShape),
-            color = AudioPlayerAppTheme.colors.primary
+      modifier =
+      Modifier
+        .size(baseSizeDp)
+        .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
+        .clip(CircleShape),
+      color = AudioPlayerAppTheme.colors.primary
     ) {
       // ここに将来的に実際の写真を表示する予定
       Box(
-              modifier =
-                      Modifier.fillMaxWidth()
-                              .aspectRatio(1f)
-                              .background(AudioPlayerAppTheme.colors.primary)
+        modifier =
+        Modifier
+          .fillMaxWidth()
+          .aspectRatio(1f)
+          .background(AudioPlayerAppTheme.colors.primary)
       )
     }
   }
@@ -267,9 +291,9 @@ fun AudioReactiveAvatar(
 
 @Composable
 fun AudioVisualizer(
-        frequencyMap: Map<Float, Float>, // Flowからシンプルなマップに変更
-        modifier: Modifier = Modifier,
-        barColor: Color = AudioPlayerAppTheme.colors.primary,
+  frequencyMap: Map<Float, Float>, // Flowからシンプルなマップに変更
+  modifier: Modifier = Modifier,
+  barColor: Color = AudioPlayerAppTheme.colors.primary,
 ) {
   // 直接マップを使用するのでFlowを収集する必要がなくなる
 
@@ -283,11 +307,29 @@ fun AudioVisualizer(
         val barHeight = (magnitude / maxMagnitude) * size.height
 
         drawRect(
-                color = barColor,
-                topLeft = Offset(x = index * barWidth, y = size.height - barHeight),
-                size = Size(width = barWidth, height = barHeight)
+          color = barColor,
+          topLeft = Offset(x = index * barWidth, y = size.height - barHeight),
+          size = Size(width = barWidth, height = barHeight)
         )
       }
+    }
+  }
+}
+
+@Composable
+fun LoadingScreen(modifier: Modifier = Modifier) {
+  Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+    CircularProgressIndicator()
+  }
+}
+
+@Composable
+fun ErrorScreen(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+  Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Text(text = message)
+      Spacer(modifier = Modifier.height(16.dp))
+      Button(onClick = onRetry) { Text("再試行") }
     }
   }
 }

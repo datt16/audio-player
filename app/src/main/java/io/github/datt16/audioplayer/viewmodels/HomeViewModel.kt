@@ -28,8 +28,6 @@ constructor(
   private val mediaRepository: MediaRepository,
 ) : ViewModel() {
 
-  val isPlaying
-    get() = playbackManager.isPlaying
   val duration
     get() = playbackManager.duration
   val playbackFlow = playbackManager.playbackProgressFlow
@@ -48,11 +46,30 @@ constructor(
   private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
   val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-  fun startPlayback(url: String) {
+  private val _isPlaying = MutableStateFlow(false)
+  val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
+  private val _currentPlayingUrl = MutableStateFlow<String?>(null)
+  val currentPlayingUrl: StateFlow<String?> = _currentPlayingUrl.asStateFlow()
+
+  fun startPlayback(mediaId: String) {
     viewModelScope.launch {
-      playbackManager.setup(url.toUri())
-      playbackManager.play()
+      try {
+        val url = "http://10.0.2.2:8888/api/media/$mediaId"
+        playbackManager.setup(url.toUri())
+        playbackManager.play()
+//        _currentPlayingUrl.value = url
+//        _isPlaying.value = true
+      } catch (e: Exception) {
+        // エラーハンドリング
+        _isPlaying.value = false
+        _currentPlayingUrl.value = null
+      }
     }
+  }
+
+  fun togglePlayback() {
+    _isPlaying.value = !_isPlaying.value
   }
 
   fun play() {
