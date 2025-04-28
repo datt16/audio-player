@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
@@ -14,7 +13,6 @@ import io.github.datt16.audioplayer.screens.home.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,16 +30,7 @@ constructor(
     get() = playbackManager.duration
   val playbackFlow = playbackManager.playbackProgressFlow
 
-  val audioFrequencyMapFlow
-    get() = playbackManager.audioVisualizer?.frequencyMapFlow ?: emptyFlow()
-
   val audioLevelFlow = audioLevelManager.audioLevelFlow
-
-  private val _mediaFiles = MutableStateFlow<List<MediaFile>>(emptyList())
-  val mediaFiles = _mediaFiles.asStateFlow()
-
-  private val _isLoading = MutableStateFlow(false)
-  val isLoading = _isLoading.asStateFlow()
 
   private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
   val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -50,7 +39,6 @@ constructor(
   val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
   private val _currentPlayingUrl = MutableStateFlow<String?>(null)
-  val currentPlayingUrl: StateFlow<String?> = _currentPlayingUrl.asStateFlow()
 
   fun startPlayback(mediaId: String) {
     viewModelScope.launch {
@@ -66,10 +54,6 @@ constructor(
         _currentPlayingUrl.value = null
       }
     }
-  }
-
-  fun togglePlayback() {
-    _isPlaying.value = !_isPlaying.value
   }
 
   fun play() {

@@ -46,6 +46,8 @@ import androidx.compose.animation.core.spring as composeSpring
 fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
   val uiState by viewModel.uiState.collectAsState()
   val isPlaying by viewModel.isPlaying.collectAsState()
+  val audioLevel by viewModel.audioLevelFlow.collectAsState(initial = 0f)
+  val playbackProgress by viewModel.playbackFlow.collectAsState(initial = null)
 
   LaunchedEffect(Unit) { viewModel.fetchMediaFiles() }
 
@@ -67,22 +69,16 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Spacer(modifier = Modifier.height(16.dp))
-
-        // リアクティブアバター
-        val audioLevel by viewModel.audioLevelFlow.collectAsState(initial = 0f)
         AudioReactiveAvatar(audioLevel = audioLevel, modifier = Modifier.size(120.dp))
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // 再生コントロール
-        val playbackProgress by viewModel.playbackFlow.collectAsState(initial = null)
         PlaybackController(
-          viewModel = viewModel,
           progressPercentage = playbackProgress?.first ?: 0f,
           playbackIcon = if (isPlaying) Icons.Default.Clear else Icons.Default.PlayArrow,
-          onProgressPercentageChange = {
-            // TODO
-          }
+          isPlaying = isPlaying,
+          duration = viewModel.duration,
+          onClickPlay = viewModel::play,
+          onClickPause = viewModel::pause,
+          onSeekChange = viewModel::seekTo,
         )
       }
     }
@@ -96,7 +92,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
       is HomeUiState.Success -> {
         MediaFileList(
           mediaFiles = (uiState as HomeUiState.Success).mediaFiles,
-          viewModel = viewModel,
+          onClickMediaItem = viewModel::startPlayback,
           modifier = Modifier.fillMaxSize()
         )
       }
@@ -104,7 +100,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
       is HomeUiState.Error -> {
         ErrorScreen(
           message = (uiState as HomeUiState.Error).message,
-          onRetry = { viewModel.fetchMediaFiles() },
+          onRetry = viewModel::fetchMediaFiles,
           modifier = Modifier.fillMaxSize()
         )
       }
@@ -114,23 +110,24 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
 
 @Composable
 private fun PlaybackController(
-  viewModel: HomeViewModel,
+  isPlaying: Boolean,
+  duration: Long,
   progressPercentage: Float,
   playbackIcon: ImageVector,
-  onProgressPercentageChange: (Float) -> Unit,
+  onClickPlay: () -> Unit,
+  onClickPause: () -> Unit,
+  onSeekChange: (progressPercentage: Float) -> Unit,
 ) {
-  val isPlaying by viewModel.isPlaying.collectAsState()
   Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-    val duration = viewModel.duration
     val currentPositionMinutes = (duration * progressPercentage / 1000f / 60).toInt()
     val currentPositionSeconds = (duration * progressPercentage / 1000f % 60).toInt()
 
     IconButton(
       onClick = {
         if (isPlaying) {
-          viewModel.pause()
+          onClickPause()
         } else {
-          viewModel.play()
+          onClickPlay()
         }
       }
     ) {
@@ -142,8 +139,8 @@ private fun PlaybackController(
     }
     Spacer(modifier = Modifier.width(4.dp))
     Slider(
-      onValueChange = onProgressPercentageChange,
-      onValueChangeFinished = { viewModel.seekTo(progressPercentage) },
+      onValueChange = onSeekChange,
+      onValueChangeFinished = { onSeekChange(progressPercentage) },
       modifier = Modifier.weight(1f),
       value = progressPercentage,
       valueRange = 0f..1f,

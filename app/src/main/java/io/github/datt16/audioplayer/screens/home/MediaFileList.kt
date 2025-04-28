@@ -15,13 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.datt16.audioplayer.core.data.model.MediaFile
-import io.github.datt16.audioplayer.viewmodels.HomeViewModel
 import java.text.DecimalFormat
 
 @Composable
 fun MediaFileList(
   mediaFiles: List<MediaFile>,
-  viewModel: HomeViewModel,
+  onClickMediaItem: (mediaId: String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   LazyColumn(
@@ -32,7 +31,7 @@ fun MediaFileList(
     items(mediaFiles) { mediaFile ->
       MediaFileCard(
         mediaFile = mediaFile,
-        onClick = { viewModel.startPlayback(mediaFile.mediaId) },
+        onClick = { onClickMediaItem(mediaFile.mediaId) },
         modifier = Modifier.fillMaxWidth()
       )
     }
