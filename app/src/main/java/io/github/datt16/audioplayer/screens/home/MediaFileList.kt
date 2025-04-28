@@ -22,7 +22,7 @@ import java.text.DecimalFormat
 fun MediaFileList(
   mediaFiles: List<MediaFile>,
   viewModel: HomeViewModel,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   LazyColumn(
     modifier = modifier.fillMaxSize(),
@@ -47,8 +47,8 @@ fun MediaFileCard(mediaFile: MediaFile, onClick: () -> Unit, modifier: Modifier 
   ) {
     Row(
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
+        .fillMaxWidth()
+        .padding(16.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
       Column(modifier = Modifier.weight(1f)) {

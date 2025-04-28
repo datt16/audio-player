@@ -1,9 +1,6 @@
 package io.github.datt16.audioplayer.screens.home
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring as composeSpring
-import androidx.compose.animation.core.spring as composeSpring
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,19 +33,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import android.R
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.ui.res.vectorResource
 import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 import io.github.datt16.audioplayer.viewmodels.HomeViewModel
+import androidx.compose.animation.core.Spring as composeSpring
+import androidx.compose.animation.core.spring as composeSpring
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
@@ -73,15 +66,6 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
           .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        // オーディオビジュアライザー
-        val frequencyMap by viewModel.audioFrequencyMapFlow.collectAsState(initial = emptyMap())
-        AudioVisualizer(
-          frequencyMap = frequencyMap,
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // リアクティブアバター
@@ -96,7 +80,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
           viewModel = viewModel,
           progressPercentage = playbackProgress?.first ?: 0f,
           playbackIcon = if (isPlaying) Icons.Default.Clear else Icons.Default.PlayArrow,
-          onProgressPercentageChanged = {
+          onProgressPercentageChange = {
             // TODO
           }
         )
@@ -133,7 +117,7 @@ private fun PlaybackController(
   viewModel: HomeViewModel,
   progressPercentage: Float,
   playbackIcon: ImageVector,
-  onProgressPercentageChanged: (Float) -> Unit,
+  onProgressPercentageChange: (Float) -> Unit,
 ) {
   val isPlaying by viewModel.isPlaying.collectAsState()
   Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -158,7 +142,7 @@ private fun PlaybackController(
     }
     Spacer(modifier = Modifier.width(4.dp))
     Slider(
-      onValueChange = onProgressPercentageChanged,
+      onValueChange = onProgressPercentageChange,
       onValueChangeFinished = { viewModel.seekTo(progressPercentage) },
       modifier = Modifier.weight(1f),
       value = progressPercentage,
@@ -179,7 +163,6 @@ private fun PlaybackController(
 fun AudioReactiveAvatar(
   audioLevel: Float,
   modifier: Modifier = Modifier,
-  avatarSize: Float = 0.6f,
 ) {
   // プレースホルダーのサイズを基準値として定義
   val baseSizeDp = 100.dp
@@ -292,33 +275,6 @@ fun AudioReactiveAvatar(
 }
 
 @Composable
-fun AudioVisualizer(
-  frequencyMap: Map<Float, Float>, // Flowからシンプルなマップに変更
-  modifier: Modifier = Modifier,
-  barColor: Color = AudioPlayerAppTheme.colors.primary,
-) {
-  // 直接マップを使用するのでFlowを収集する必要がなくなる
-
-  Canvas(modifier = modifier) {
-    if (frequencyMap.isNotEmpty()) {
-      val sortedEntries = frequencyMap.toSortedMap()
-      val maxMagnitude = sortedEntries.values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
-      val barWidth = size.width / sortedEntries.size
-      sortedEntries.entries.forEachIndexed { index, entry ->
-        val magnitude = entry.value
-        val barHeight = (magnitude / maxMagnitude) * size.height
-
-        drawRect(
-          color = barColor,
-          topLeft = Offset(x = index * barWidth, y = size.height - barHeight),
-          size = Size(width = barWidth, height = barHeight)
-        )
-      }
-    }
-  }
-}
-
-@Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
   Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
     CircularProgressIndicator()
@@ -338,6 +294,6 @@ fun ErrorScreen(message: String, onRetry: () -> Unit, modifier: Modifier = Modif
 
 @Preview
 @Composable
-fun HomeScreenPreview() {
+private fun HomeScreenPreview() {
   AudioPlayerAppTheme { Surface { HomeScreen() } }
 }

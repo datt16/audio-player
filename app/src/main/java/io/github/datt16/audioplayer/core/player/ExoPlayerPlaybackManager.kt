@@ -8,11 +8,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import io.github.datt16.audioplayer.core.visualizer.AudioVisualizer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,9 +21,6 @@ class ExoPlayerPlaybackManager @Inject constructor(
   private val dataSourceFactory: DataSource.Factory,
 ) : Player.Listener, PlaybackManager {
 
-  private var _audioVisualizer: AudioVisualizer? = null
-  override val audioVisualizer get() = _audioVisualizer
-
   @OptIn(UnstableApi::class)
   override suspend fun setup(uri: Uri) {
     val mediaItem = MediaItem.fromUri(uri)
@@ -34,15 +29,6 @@ class ExoPlayerPlaybackManager @Inject constructor(
     exoPlayer.addListener(this)
     exoPlayer.setMediaSource(mediaSource)
     exoPlayer.prepare()
-  }
-
-  private fun initializeAudioVisualizer(sessionId: Int): AudioVisualizer? {
-    return try {
-      AudioVisualizer(sessionId)
-    } catch (e: Exception) {
-      Timber.tag("AudioVisualizer").e(e)
-      null
-    }
   }
 
   override fun play() {
@@ -76,9 +62,4 @@ class ExoPlayerPlaybackManager @Inject constructor(
 
   override val duration: Long
     get() = exoPlayer.duration
-
-  override fun onAudioSessionIdChanged(audioSessionId: Int) {
-    super.onAudioSessionIdChanged(audioSessionId)
-    _audioVisualizer = initializeAudioVisualizer(audioSessionId)
-  }
 }

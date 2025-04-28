@@ -89,7 +89,7 @@ class AudioLevelProcessor @Inject constructor() : AudioProcessor {
     val shortBuffer = buffer.asShortBuffer()
 
     // 各サンプルの絶対値の平均を計算
-    for (i in 0 until sampleCount * channelCount) {
+    repeat(sampleCount * channelCount) {
       val sample = shortBuffer.get()
       // Shortの範囲は-32768〜32767なので、最大値の32768.0fで割って正規化
       sum += abs(sample.toFloat()) / 32768.0f

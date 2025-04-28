@@ -11,12 +11,12 @@ import io.github.datt16.audioplayer.core.data.repository.MediaRepository
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
 import io.github.datt16.audioplayer.screens.home.HomeUiState
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
