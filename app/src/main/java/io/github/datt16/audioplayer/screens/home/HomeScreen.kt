@@ -28,7 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -118,6 +120,12 @@ private fun PlaybackController(
   onClickPause: () -> Unit,
   onSeekChange: (progressPercentage: Float) -> Unit,
 ) {
+  var progress by remember { mutableFloatStateOf(progressPercentage) }
+
+  LaunchedEffect(progress) {
+    onSeekChange(progress)
+  }
+
   Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
     val currentPositionMinutes = (duration * progressPercentage / 1000f / 60).toInt()
     val currentPositionSeconds = (duration * progressPercentage / 1000f % 60).toInt()
@@ -139,10 +147,10 @@ private fun PlaybackController(
     }
     Spacer(modifier = Modifier.width(4.dp))
     Slider(
-      onValueChange = onSeekChange,
-      onValueChangeFinished = { onSeekChange(progressPercentage) },
+      onValueChange = { progress = it },
+      onValueChangeFinished = { onSeekChange(progress) },
       modifier = Modifier.weight(1f),
-      value = progressPercentage,
+      value = progress,
       valueRange = 0f..1f,
     )
     Spacer(modifier = Modifier.width(8.dp))
