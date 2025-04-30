@@ -17,7 +17,7 @@ import io.github.datt16.audioplayer.viewmodels.GlobalSettingsViewModel
 @Composable
 fun GlobalSettingsScreen(
   modifier: Modifier = Modifier,
-  viewModel: GlobalSettingsViewModel = hiltViewModel()
+  viewModel: GlobalSettingsViewModel = hiltViewModel(),
 ) {
   val progress by viewModel.downloadProgress.collectAsState()
   LazyColumn(modifier = modifier.fillMaxSize()) {

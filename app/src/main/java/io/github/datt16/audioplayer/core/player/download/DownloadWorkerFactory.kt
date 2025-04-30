@@ -15,7 +15,7 @@ class DownloadWorkerFactory(
   override fun createWorker(
     appContext: Context,
     workerClassName: String,
-    workerParameters: WorkerParameters
+    workerParameters: WorkerParameters,
   ): ListenableWorker? {
     return when (workerClassName) {
       DownloadWorker::class.java.name ->

@@ -9,7 +9,6 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import io.github.datt16.audioplayer.core.player.di.CacheDataSourceType
-import io.github.datt16.audioplayer.core.player.di.HttpDataSourceType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

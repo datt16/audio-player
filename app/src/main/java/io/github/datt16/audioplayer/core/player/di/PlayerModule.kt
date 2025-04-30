@@ -85,7 +85,7 @@ object PlayerModule {
   fun provideExoPlayer(
     @ApplicationContext context: Context,
     audioLevelProcessor: AudioLevelProcessor,
-    @CacheDataSourceType cacheDataSourceFactory: DataSource.Factory
+    @CacheDataSourceType cacheDataSourceFactory: DataSource.Factory,
   ): ExoPlayer {
     val renderersFactory = CustomRenderersFactory(context, audioLevelProcessor)
     return ExoPlayer.Builder(context, renderersFactory).setMediaSourceFactory(

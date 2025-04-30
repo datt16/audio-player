@@ -1,17 +1,16 @@
 package io.github.datt16.audioplayer.core.player.download
 
 import android.content.Context
+import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import kotlinx.coroutines.coroutineScope
-import androidx.core.net.toUri
-import androidx.media3.exoplayer.offline.Download
 import androidx.work.workDataOf
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 @UnstableApi
 class DownloadWorker(
@@ -36,11 +35,11 @@ class DownloadWorker(
       val indexedDownload = downloadManager.downloadIndex.getDownload(request.id)
       state = activeDownload?.state
         ?: indexedDownload?.state
-          ?: Download.STATE_FAILED
+        ?: Download.STATE_FAILED
 
       val progress = when (state) {
-        Download.STATE_COMPLETED -> 100                       // 完了なら 100%
-        Download.STATE_FAILED -> 0                         // 失敗なら 0%
+        Download.STATE_COMPLETED -> 100 // 完了なら 100%
+        Download.STATE_FAILED -> 0 // 失敗なら 0%
         else -> (activeDownload?.percentDownloaded?.toInt() ?: 0)
       }
       setProgress(workDataOf(KEY_PROGRESS to progress))

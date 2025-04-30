@@ -15,7 +15,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
-import timber.log.Timber
 import javax.inject.Inject
 
 data class DownloadStatus(
@@ -106,7 +105,6 @@ class DownloadController @Inject constructor(
       // Map の中身が変わらない限り流さない
       .distinctUntilChanged()
   }
-
 
   companion object {
     private const val UNIQUE_WORK_PREFIX = "media_download_"
