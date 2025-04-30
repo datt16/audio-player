@@ -75,6 +75,8 @@ dependencies {
   implementation(libs.androidx.media3.exoplayer.hls)
   implementation(libs.androidx.media3.exoplayer)
 
+  implementation(libs.androidx.work.runtime)
+
   testImplementation(libs.junit)
   implementation(libs.timber)
   androidTestImplementation(libs.androidx.junit)
