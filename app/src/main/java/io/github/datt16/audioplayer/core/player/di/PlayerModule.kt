@@ -101,7 +101,7 @@ object PlayerModule {
     @ApplicationContext context: Context,
     databaseProvider: StandaloneDatabaseProvider,
     cache: SimpleCache,
-    dataSourceFactory: DataSource.Factory,
+    @HttpDataSourceType dataSourceFactory: DataSource.Factory,
   ): DownloadManager {
     return DownloadManagerBuilder.buildDownloadManager(
       context = context,

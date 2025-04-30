@@ -1,11 +1,15 @@
 package io.github.datt16.audioplayer.core
 
 import android.app.Application
+import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.work.Configuration
 import androidx.work.WorkManager
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
 import dagger.hilt.android.HiltAndroidApp
+import dagger.hilt.components.SingletonComponent
 import io.github.datt16.audioplayer.BuildConfig
 import io.github.datt16.audioplayer.core.player.download.DownloadWorkerFactory
 import timber.log.Timber
