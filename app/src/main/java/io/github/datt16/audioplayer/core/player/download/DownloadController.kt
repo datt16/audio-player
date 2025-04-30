@@ -12,9 +12,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
 import javax.inject.Inject
@@ -32,7 +30,7 @@ class DownloadController @Inject constructor(
 ) : DownloadManager.Listener {
 
   fun startDownload(contentId: String, contentUrl: String) {
-    val workTag = "$WORK_PREFIX$contentId"
+    val workTag = "$WORK_DOWNLOAD_CONTENT_PREFIX$contentId"
 
     val work = OneTimeWorkRequestBuilder<DownloadWorker>()
       .setInputData(
@@ -57,19 +55,19 @@ class DownloadController @Inject constructor(
   }
 
   fun pauseDownload(contentId: String) {
-    val workTag = "$WORK_PREFIX$contentId"
+    val workTag = "$WORK_DOWNLOAD_CONTENT_PREFIX$contentId"
     WorkManager.getInstance(context).cancelUniqueWork(workTag)
   }
 
   fun cancelDownload(contentId: String) {
-    val workTag = "$WORK_PREFIX$contentId"
+    val workTag = "$WORK_DOWNLOAD_CONTENT_PREFIX$contentId"
     pauseDownload(workTag)
     downloadManager.removeDownload(contentId)
   }
 
   @kotlin.OptIn(ExperimentalCoroutinesApi::class)
-  fun observeProgress(contentId: String): Flow<DownloadStatus> {
-    val workTag = "$WORK_PREFIX$contentId"
+  fun getDownloadProgressFlow(contentId: String): Flow<DownloadStatus> {
+    val workTag = "$WORK_DOWNLOAD_CONTENT_PREFIX$contentId"
     return WorkManager.getInstance(context)
       .getWorkInfosForUniqueWorkFlow(workTag)
       .mapLatest { infos ->
@@ -84,7 +82,32 @@ class DownloadController @Inject constructor(
       .distinctUntilChanged()
   }
 
+  @kotlin.OptIn(ExperimentalCoroutinesApi::class)
+  fun getAllDownloadProgressMapFlow(): Flow<Map<String, DownloadStatus>> {
+    return WorkManager.getInstance(context)
+      .getWorkInfosByTagFlow(WORK_DOWNLOAD_CONTENT_PREFIX)
+      .mapLatest { infos ->
+        infos
+          .mapNotNull { info ->
+            // タグから contentId を抽出
+            val contentTag = info.tags.firstOrNull { it.startsWith(WORK_DOWNLOAD_CONTENT_PREFIX) }
+            val contentId =
+              contentTag?.removePrefix(WORK_DOWNLOAD_CONTENT_PREFIX) ?: return@mapNotNull null
+            val percent = info.progress.getInt(DownloadWorker.KEY_PROGRESS, 0)
+            "work-$contentId" to DownloadStatus(
+              contentId = contentId,
+              progress = percent,
+              state = info.state
+            )
+          }
+          .toMap()
+      }
+      // Map の中身が変わらない限り流さない
+      .distinctUntilChanged()
+  }
+
+
   companion object {
-    const val WORK_PREFIX = "media_download_"
+    const val WORK_DOWNLOAD_CONTENT_PREFIX = "media_download_content_"
   }
 }
