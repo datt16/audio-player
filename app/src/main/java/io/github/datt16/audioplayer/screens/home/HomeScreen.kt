@@ -293,7 +293,7 @@ fun ErrorScreen(
   message: String,
   onRetry: () -> Unit,
   onClickMediaItem: (MediaFile) -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
