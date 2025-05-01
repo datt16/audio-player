@@ -124,8 +124,8 @@ private fun PlaybackController(
 ) {
   var progress by remember { mutableFloatStateOf(progressPercentage) }
 
-  LaunchedEffect(progress) {
-    onSeekChange(progress)
+  LaunchedEffect(progressPercentage) {
+    progress = progressPercentage
   }
 
   Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -182,7 +182,7 @@ fun AudioReactiveAvatar(
   // 内側の円の最小サイズ（プレースホルダーの1.15倍）
   val minInnerRatio = 1.15f
   // 外側の円の最小サイズ（プレースホルダーの1.25倍）
-  val minOuterRatio = 1.25f
+  val minOuterRatio = 1.60f
 
   // ゲインの閾値 - この値以下だと円が最小サイズになる
   val thresholdLevel = 0.05f
@@ -208,13 +208,16 @@ fun AudioReactiveAvatar(
     // 音量が閾値以下の場合は最小サイズを適用（プレースホルダーの1.25倍）= minOuterRatio * baseSizeDp/outerSizeDp
     val minScale = minOuterRatio * baseSizeDp.value / outerSizeDp.value
     // 通常時の最大拡大率（0.5倍）
-    val maxAdditionalScale = 0.5f
+    val maxAdditionalScale = 0.9f
 
     val targetOuterScale = minScale + (effectiveAudioLevel * maxAdditionalScale)
 
     outerScaleAnimation.animateTo(
       targetValue = targetOuterScale,
-      animationSpec = composeSpring(dampingRatio = 0.6f, stiffness = 60f)
+      animationSpec = composeSpring(
+        dampingRatio = composeSpring.DampingRatioMediumBouncy,
+        stiffness = composeSpring.StiffnessMedium
+      )
     )
   }
 
@@ -223,7 +226,7 @@ fun AudioReactiveAvatar(
     // 最小サイズを適用（プレースホルダーの1.15倍）= minInnerRatio * baseSizeDp/innerSizeDp
     val minScale = minInnerRatio * baseSizeDp.value / innerSizeDp.value
     // 通常時の最大拡大率（0.3倍）
-    val maxAdditionalScale = 0.3f
+    val maxAdditionalScale = 0.6f
 
     val targetInnerScale = minScale + (effectiveAudioLevel * maxAdditionalScale)
 
@@ -231,8 +234,8 @@ fun AudioReactiveAvatar(
       targetValue = targetInnerScale,
       animationSpec =
       composeSpring(
-        dampingRatio = composeSpring.DampingRatioLowBouncy,
-        stiffness = composeSpring.StiffnessLow
+        dampingRatio = composeSpring.DampingRatioMediumBouncy,
+        stiffness = composeSpring.StiffnessMedium
       )
     )
   }
@@ -262,8 +265,7 @@ fun AudioReactiveAvatar(
 
     // 中央のアバター写真
     Surface(
-      modifier =
-      Modifier
+      modifier = Modifier
         .size(baseSizeDp)
         .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
         .clip(CircleShape),
