@@ -20,7 +20,7 @@ import java.text.DecimalFormat
 @Composable
 fun MediaFileList(
   mediaFiles: List<MediaFile>,
-  onClickMediaItem: (mediaId: String) -> Unit,
+  onClickMediaItem: (mediaFile: MediaFile) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   LazyColumn(
@@ -31,7 +31,7 @@ fun MediaFileList(
     items(mediaFiles) { mediaFile ->
       MediaFileCard(
         mediaFile = mediaFile,
-        onClick = { onClickMediaItem(mediaFile.mediaId) },
+        onClick = { onClickMediaItem(mediaFile) },
         modifier = Modifier.fillMaxWidth()
       )
     }

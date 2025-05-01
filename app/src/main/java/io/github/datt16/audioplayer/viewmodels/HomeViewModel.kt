@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
@@ -40,10 +41,14 @@ constructor(
 
   private val _currentPlayingUrl = MutableStateFlow<String?>(null)
 
-  fun startPlayback(mediaId: String) {
+  fun startPlayback(mediaFile: MediaFile) {
     viewModelScope.launch {
       try {
-        val url = "http://10.0.2.2:8888/api/media/$mediaId"
+        val url = if (mediaFile.mediaId.startsWith("sample")) {
+          mediaFile.playableUrl
+        } else {
+          "http://10.0.2.2:8888/api/media/${mediaFile.mediaId}"
+        }
         playbackManager.setup(url.toUri())
         playbackManager.play()
         _currentPlayingUrl.value = url
@@ -81,5 +86,20 @@ constructor(
             HomeUiState.Error(message = error.message ?: "不明なエラーが発生しました")
         }
     }
+  }
+
+  companion object {
+    val sampleMediaFiles = listOf(
+      MediaFile(
+        name = "sample01(オフライン再生用)",
+        path = "",
+        size = 0,
+        type = "audio",
+        isDir = false,
+        relativePath = "",
+        mediaId = "sample01",
+        playableUrl = "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3"
+      )
+    )
   }
 }

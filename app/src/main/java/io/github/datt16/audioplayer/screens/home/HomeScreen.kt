@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
 import io.github.datt16.audioplayer.viewmodels.HomeViewModel
 import androidx.compose.animation.core.Spring as composeSpring
@@ -103,6 +104,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
         ErrorScreen(
           message = (uiState as HomeUiState.Error).message,
           onRetry = viewModel::fetchMediaFiles,
+          onClickMediaItem = viewModel::startPlayback,
           modifier = Modifier.fillMaxSize()
         )
       }
@@ -287,12 +289,22 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ErrorScreen(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreen(
+  message: String,
+  onRetry: () -> Unit,
+  onClickMediaItem: (MediaFile) -> Unit,
+  modifier: Modifier = Modifier
+) {
   Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
       Text(text = message)
       Spacer(modifier = Modifier.height(16.dp))
       Button(onClick = onRetry) { Text("再試行") }
+      Spacer(modifier = Modifier.height(32.dp))
+      MediaFileList(
+        mediaFiles = HomeViewModel.sampleMediaFiles,
+        onClickMediaItem = onClickMediaItem,
+      )
     }
   }
 }
