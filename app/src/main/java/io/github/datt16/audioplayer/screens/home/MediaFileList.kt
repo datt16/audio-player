@@ -73,18 +73,8 @@ fun MediaFileCard(mediaFile: MediaFile, onClick: () -> Unit, modifier: Modifier 
       }
       // 暗号化状態のアイコン
       Icon(
-        imageVector =
-        if (isEncrypted(mediaFile.path)) {
-          Icons.Default.Lock
-        } else {
-          Icons.Default.CheckCircle
-        },
-        contentDescription =
-        if (isEncrypted(mediaFile.path)) {
-          "Encrypted"
-        } else {
-          "Not encrypted"
-        },
+        imageVector = if (mediaFile.isEncrypted) Icons.Default.Lock else Icons.Default.CheckCircle,
+        contentDescription = if (mediaFile.isEncrypted) "Encrypted" else "Not encrypted",
         modifier = Modifier.padding(start = 8.dp)
       )
     }
@@ -123,8 +113,4 @@ private fun formatFileSize(size: Long): String {
     size < 1024 * 1024 * 1024 -> "${df.format(size / (1024.0 * 1024.0))} MB"
     else -> "${df.format(size / (1024.0 * 1024.0 * 1024.0))} GB"
   }
-}
-
-private fun isEncrypted(path: String): Boolean {
-  return path.contains("encrypted", ignoreCase = true)
 }

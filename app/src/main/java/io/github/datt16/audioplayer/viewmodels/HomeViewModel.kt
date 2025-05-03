@@ -98,7 +98,9 @@ constructor(
         isDir = false,
         relativePath = "",
         mediaId = "sample01",
-        playableUrl = "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3"
+        playableUrl = "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3",
+        iv = null,
+        isEncrypted = false,
       )
     )
   }
