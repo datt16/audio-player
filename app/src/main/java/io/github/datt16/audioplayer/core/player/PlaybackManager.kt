@@ -10,6 +10,7 @@ interface PlaybackManager {
   val duration: Long
   val playbackProgressFlow: Flow<PlaybackProgress>
   suspend fun setup(uri: Uri)
+  suspend fun setup(uri: Uri, iv: String, key: String)
   fun play()
   fun pause()
   fun seekToByPercentage(playbackPercentage: Float)

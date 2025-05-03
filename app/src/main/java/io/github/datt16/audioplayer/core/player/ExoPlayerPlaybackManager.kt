@@ -32,6 +32,11 @@ class ExoPlayerPlaybackManager @Inject constructor(
     exoPlayer.prepare()
   }
 
+  override suspend fun setup(uri: Uri, iv: String, key: String) {
+    // TODO: implement setup with encrypt
+    TODO()
+  }
+
   override fun play() {
     exoPlayer.play()
   }

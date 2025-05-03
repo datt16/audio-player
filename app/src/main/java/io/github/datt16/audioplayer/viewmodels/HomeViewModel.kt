@@ -49,7 +49,21 @@ constructor(
         } else {
           "http://10.0.2.2:8888/api/media/${mediaFile.mediaId}"
         }
-        playbackManager.setup(url.toUri())
+
+        if (mediaFile.isEncrypted) {
+          val key = mediaRepository.getMediaLicense(mediaFile.mediaId).getOrNull()
+          val iv = mediaFile.iv
+          if (key == null || iv == null) {
+            // TODO: エラー表示
+            return@launch
+          }
+
+          playbackManager.setup(uri = url.toUri(), iv = iv, key = key)
+        } else {
+          playbackManager.setup(url.toUri())
+        }
+
+
         playbackManager.play()
         _currentPlayingUrl.value = url
         _isPlaying.value = true
