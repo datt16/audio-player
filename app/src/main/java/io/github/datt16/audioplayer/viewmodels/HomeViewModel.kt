@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.work.WorkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
@@ -161,6 +162,7 @@ class HomeViewModel @Inject constructor(
 
   private fun downloadMediaFile(mediaId: String, mediaUrl: String) {
     downloadController.startDownload(mediaId, mediaUrl)
+    // メソッド呼ばれるたびにスコープ作られてリークするかも (完了前に呼ばれた場合とか)
     val downloaderScope = CoroutineScope(Dispatchers.IO)
 
     downloadController.getDownloadProgressFlow(mediaId).onEach { downloadStatus ->
@@ -168,7 +170,9 @@ class HomeViewModel @Inject constructor(
     }.onCompletion {
       downloaderScope.cancel()
     }.catch {
-      downloaderScope.cancel()
+      downloadStatusMap.update { currentMap ->
+        currentMap + (mediaId to DownloadStatus.Failed(mediaId, WorkInfo.State.FAILED))
+      }
     }.launchIn(downloaderScope)
   }
 
