@@ -18,12 +18,17 @@ import io.github.datt16.audioplayer.core.player.util.decryptFileEncryptedByAesCB
 import io.github.datt16.audioplayer.core.player.util.getDownloadedFile
 import io.github.datt16.audioplayer.screens.home.HomeUiState
 import io.github.datt16.audioplayer.screens.home.MediaFileItemState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -132,6 +137,10 @@ class HomeViewModel @Inject constructor(
         // ファイルのダウンロードが終わってなかったらダウンロード呼び出して再生準備はしない
         downloadMediaFile(mediaFile.mediaId, mediaUrl)
         return
+      } else {
+        downloadStatusMap.update { currentProgressMap ->
+          currentProgressMap + (mediaFile.mediaId to DownloadStatus.Success(mediaFile.mediaId))
+        }
       }
 
       val key = mediaRepository.getMediaLicense(mediaFile.mediaId).getOrThrow()
@@ -152,11 +161,15 @@ class HomeViewModel @Inject constructor(
 
   private fun downloadMediaFile(mediaId: String, mediaUrl: String) {
     downloadController.startDownload(mediaId, mediaUrl)
+    val downloaderScope = CoroutineScope(Dispatchers.IO)
 
-    // TODO: ダウンロード完了後、Flowの購読をやめる
     downloadController.getDownloadProgressFlow(mediaId).onEach { downloadStatus ->
       downloadStatusMap.update { currentProgressMap -> currentProgressMap + (mediaId to downloadStatus) }
-    }.launchIn(viewModelScope)
+    }.onCompletion {
+      downloaderScope.cancel()
+    }.catch {
+      downloaderScope.cancel()
+    }.launchIn(downloaderScope)
   }
 
   fun play() {

@@ -30,7 +30,7 @@ class DownloadWorker(
 
     var state: Int
     do {
-      delay(17) // 60フレーム換算、1フレームあたりの時間
+      delay(10)
       val activeDownload = downloadManager.currentDownloads
         .firstOrNull { it.request.id == request.id }
 
@@ -48,7 +48,8 @@ class DownloadWorker(
       setProgress(workDataOf(KEY_PROGRESS to progress))
     } while (state == Download.STATE_QUEUED || state == Download.STATE_DOWNLOADING)
 
-    downloadManager.release()
+    // シングルトンの場合はreleaseを行わない
+//    downloadManager.release()
 
     if (state == Download.STATE_COMPLETED) Result.success() else Result.failure()
   }
