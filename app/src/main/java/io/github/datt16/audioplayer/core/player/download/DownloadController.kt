@@ -48,9 +48,9 @@ class DownloadController @Inject constructor(
 ) : DownloadManager.Listener {
 
   fun startDownload(contentId: String, contentUrl: String) {
-
     val uniqueName = generateUniqueId(contentId, PREFIX_DOWNLOAD_WORK)
-    val contentTag = generateUniqueId(contentId, PREFIX_DOWNLOAD_CONTENT)
+    val contentUniqueTag = generateUniqueId(contentId, PREFIX_DOWNLOAD_CONTENT)
+    val contentIdTag = "$PREFIX_DOWNLOAD_CONTENT$contentId"
 
     val work = OneTimeWorkRequestBuilder<DownloadWorker>()
       .setInputData(
@@ -60,7 +60,8 @@ class DownloadController @Inject constructor(
         )
       )
       .addTag(GROUP_DOWNLOAD_ALL)
-      .addTag(contentTag)
+      .addTag(contentUniqueTag)
+      .addTag(contentIdTag)
       .setConstraints(
         Constraints.Builder()
           .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -82,7 +83,9 @@ class DownloadController @Inject constructor(
   }
 
   fun pauseDownload(contentId: String) {
-    val uniqueName = PREFIX_DOWNLOAD_WORK + contentId
+
+    // TODO: keyの中からcontentIdを含んでるやつを探してそのuniqueNameをとってくる
+    val uniqueName = generateUniqueId(contentId, PREFIX_DOWNLOAD_WORK)
     WorkManager.getInstance(context).cancelUniqueWork(uniqueName)
   }
 
@@ -93,8 +96,9 @@ class DownloadController @Inject constructor(
 
   @kotlin.OptIn(ExperimentalCoroutinesApi::class)
   fun getDownloadProgressFlow(contentId: String): Flow<DownloadStatus> {
+    val contentIdTag = "$PREFIX_DOWNLOAD_CONTENT$contentId"
     return WorkManager.getInstance(context)
-      .getWorkInfosForUniqueWorkFlow(GROUP_DOWNLOAD_ALL)
+      .getWorkInfosByTagFlow(contentIdTag)
       .mapLatest { infos ->
         val info = infos.firstOrNull()
         workStateToDownloadStatus(contentId, info)

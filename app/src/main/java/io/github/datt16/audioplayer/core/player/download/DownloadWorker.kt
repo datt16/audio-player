@@ -11,6 +11,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 @UnstableApi
 class DownloadWorker(
@@ -22,26 +23,28 @@ class DownloadWorker(
   override suspend fun doWork(): Result = coroutineScope {
     val mediaUrl = inputData.getString(KEY_MEDIA_URL) ?: return@coroutineScope Result.failure()
     val contentId = inputData.getString(KEY_CONTENT_ID) ?: return@coroutineScope Result.failure()
-    val request = DownloadRequest.Builder(contentId, mediaUrl.toUri()).setCustomCacheKey(contentId).build()
+    val request =
+      DownloadRequest.Builder(contentId, mediaUrl.toUri()).setCustomCacheKey(contentId).build()
     downloadManager.addDownload(request)
     downloadManager.resumeDownloads()
 
     var state: Int
     do {
-      delay(500)
+      delay(17) // 60フレーム換算、1フレームあたりの時間
       val activeDownload = downloadManager.currentDownloads
         .firstOrNull { it.request.id == request.id }
 
       val indexedDownload = downloadManager.downloadIndex.getDownload(request.id)
       state = activeDownload?.state
         ?: indexedDownload?.state
-        ?: Download.STATE_FAILED
+          ?: Download.STATE_FAILED
 
       val progress = when (state) {
         Download.STATE_COMPLETED -> 100 // 完了なら 100%
         Download.STATE_FAILED -> 0 // 失敗なら 0%
         else -> (activeDownload?.percentDownloaded?.toInt() ?: 0)
       }
+      Timber.tag("osa-updateWorkerProgress").d("state: $state, progress: $progress")
       setProgress(workDataOf(KEY_PROGRESS to progress))
     } while (state == Download.STATE_QUEUED || state == Download.STATE_DOWNLOADING)
 
