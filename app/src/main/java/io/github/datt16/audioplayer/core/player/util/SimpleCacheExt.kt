@@ -15,3 +15,10 @@ fun SimpleCache.getDownloadedFile(mediaId: String): File {
   val span = spans.firstOrNull() ?: throw IllegalStateException("Cached file not found")
   return span.file ?: throw IllegalStateException("Cached file not found")
 }
+
+@UnstableApi
+fun SimpleCache.clearAllEntries() {
+  keys.forEach { key ->
+    removeResource(key)
+  }
+}

@@ -7,6 +7,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.player.download.DownloadController
+import io.github.datt16.audioplayer.core.player.util.clearAllEntries
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -59,6 +60,11 @@ class GlobalSettingsViewModel @Inject constructor(
     }
 
     _cacheItems.value = entries
+  }
+
+  fun clearAllCaches() {
+    simpleCache.clearAllEntries()
+    checkCacheEntries()
   }
 }
 

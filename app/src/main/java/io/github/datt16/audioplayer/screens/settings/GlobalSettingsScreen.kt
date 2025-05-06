@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -87,8 +90,8 @@ fun GlobalSettingsScreen(
         ElevatedButton(
           onClick = { viewModel.startDownloadSample() },
           modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
+              .fillMaxSize()
+              .padding(horizontal = 16.dp)
         ) {
           Text("Download Sample")
         }
@@ -99,19 +102,29 @@ fun GlobalSettingsScreen(
         )
       }
       item {
-        Text(
-          text = "Cached Files (${cacheEntries.size})",
-          style = AudioPlayerAppTheme.typography.titleMedium,
-          color = AudioPlayerAppTheme.colors.onSurface,
-          modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.padding(start = 16.dp)
+        ) {
+          Text(
+            text = "Cached Files (${cacheEntries.size})",
+            style = AudioPlayerAppTheme.typography.titleMedium,
+            color = AudioPlayerAppTheme.colors.onSurface,
+          )
+          Spacer(modifier = Modifier.width(16.dp))
+          TextButton(
+            onClick = viewModel::clearAllCaches,
+          ) {
+            Text("Clear All Caches")
+          }
+        }
       }
       items(cacheEntries) {
         CacheEntryItem(
           it,
           modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp)
+              .padding(horizontal = 16.dp)
+              .padding(top = 8.dp)
         )
       }
     }
@@ -122,13 +135,12 @@ fun GlobalSettingsScreen(
 private fun CacheEntryItem(cacheItem: CacheItem, modifier: Modifier = Modifier) {
   Column(
     modifier = modifier
-      .fillMaxWidth()
-      .height(80.dp)
-      .background(
-        color = AudioPlayerAppTheme.colors.surfaceVariant,
-        shape = RoundedCornerShape(8.dp)
-      )
-      .padding(16.dp)
+        .fillMaxWidth()
+        .background(
+            color = AudioPlayerAppTheme.colors.surfaceVariant,
+            shape = RoundedCornerShape(8.dp)
+        )
+        .padding(16.dp)
   ) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
       Text(
