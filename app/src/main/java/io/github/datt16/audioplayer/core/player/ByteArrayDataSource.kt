@@ -13,7 +13,7 @@ import androidx.media3.datasource.TransferListener
 @UnstableApi
 class ByteArrayDataSource(
   private val decryptedData: ByteArray,
-  private val listener: Listener? = null
+  private val listener: Listener? = null,
 ) : DataSource {
   interface Listener {
     fun onClose() // for clear memory

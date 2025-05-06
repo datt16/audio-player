@@ -66,7 +66,6 @@ constructor(
           playbackManager.setup(url.toUri())
         }
 
-
         playbackManager.play()
         _currentPlayingUrl.value = url
         _isPlaying.value = true
