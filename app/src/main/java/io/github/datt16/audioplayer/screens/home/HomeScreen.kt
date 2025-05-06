@@ -56,19 +56,19 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
 
   Column(
     modifier = modifier
-      .fillMaxSize()
-      .padding(top = 16.dp)
+        .fillMaxSize()
+        .padding(top = 16.dp)
   ) {
     // 固定部分（プログレスバーまで）
     Box(
       modifier = Modifier
-        .fillMaxWidth()
-        .height(250.dp)
+          .fillMaxWidth()
+          .height(250.dp)
     ) {
       Column(
         modifier = Modifier
-          .fillMaxSize()
-          .padding(16.dp),
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -102,6 +102,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
 
       is HomeUiState.Error -> {
         ErrorScreen(
+          mediaFiles = (uiState as HomeUiState.Error).sampleMediaList,
           message = (uiState as HomeUiState.Error).message,
           onRetry = viewModel::fetchMediaFiles,
           onClickMediaItem = viewModel::startPlayback,
@@ -248,8 +249,8 @@ fun AudioReactiveAvatar(
     // 最も外側の円
     Surface(
       modifier = Modifier
-        .size(outerSizeDp)
-        .scale(outerScaleAnimation.value),
+          .size(outerSizeDp)
+          .scale(outerScaleAnimation.value),
       color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.08f),
       shape = CircleShape
     ) {}
@@ -257,8 +258,8 @@ fun AudioReactiveAvatar(
     // 内側の円
     Surface(
       modifier = Modifier
-        .size(innerSizeDp)
-        .scale(innerScaleAnimation.value),
+          .size(innerSizeDp)
+          .scale(innerScaleAnimation.value),
       color = AudioPlayerAppTheme.colors.primary.copy(alpha = 0.15f),
       shape = CircleShape
     ) {}
@@ -266,8 +267,8 @@ fun AudioReactiveAvatar(
     // 中央のアバター写真
     Surface(
       modifier = Modifier
-        .size(baseSizeDp)
-        .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
+          .size(baseSizeDp)
+          .scale(1f + (audioLevel * 0.05f)) // わずかに拡大縮小
         .clip(CircleShape),
       color = AudioPlayerAppTheme.colors.primary
     ) {
@@ -275,9 +276,9 @@ fun AudioReactiveAvatar(
       Box(
         modifier =
         Modifier
-          .fillMaxWidth()
-          .aspectRatio(1f)
-          .background(AudioPlayerAppTheme.colors.primary)
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .background(AudioPlayerAppTheme.colors.primary)
       )
     }
   }
@@ -292,6 +293,7 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun ErrorScreen(
+  mediaFiles: List<MediaFileItemState>,
   message: String,
   onRetry: () -> Unit,
   onClickMediaItem: (MediaFile) -> Unit,
@@ -304,7 +306,7 @@ fun ErrorScreen(
       Button(onClick = onRetry) { Text("再試行") }
       Spacer(modifier = Modifier.height(32.dp))
       MediaFileList(
-        mediaFiles = HomeViewModel.sampleMediaFiles,
+        mediaFiles = mediaFiles,
         onClickMediaItem = onClickMediaItem,
       )
     }
