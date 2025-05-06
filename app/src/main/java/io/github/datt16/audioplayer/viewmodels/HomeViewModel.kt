@@ -5,16 +5,24 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.work.WorkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
+import io.github.datt16.audioplayer.core.player.download.DownloadController
+import io.github.datt16.audioplayer.core.player.util.checkMediaDownloaded
+import io.github.datt16.audioplayer.core.player.util.decryptFileEncryptedByAesCBC
+import io.github.datt16.audioplayer.core.player.util.getDownloadedFile
 import io.github.datt16.audioplayer.screens.home.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
@@ -25,6 +33,8 @@ constructor(
   private val playbackManager: ExoPlayerPlaybackManager,
   audioLevelManager: AudioLevelManager,
   private val mediaRepository: MediaRepository,
+  private val mediaCache: SimpleCache,
+  private val downloadController: DownloadController,
 ) : ViewModel() {
 
   val duration
@@ -51,14 +61,7 @@ constructor(
         }
 
         if (mediaFile.isEncrypted) {
-          val key = mediaRepository.getMediaLicense(mediaFile.mediaId).getOrNull()
-          val iv = mediaFile.iv
-          if (key == null || iv == null) {
-            // TODO: エラー表示
-            return@launch
-          }
-
-          playbackManager.setup(uri = url.toUri(), iv = iv, key = key)
+          preparePlaybackForEncryptedMedia(mediaFile = mediaFile, mediaUrl = url)
         } else {
           playbackManager.setup(url.toUri())
         }
@@ -72,6 +75,31 @@ constructor(
         _isPlaying.value = false
         _currentPlayingUrl.value = null
       }
+    }
+  }
+
+  private suspend fun preparePlaybackForEncryptedMedia(mediaFile: MediaFile, mediaUrl: String) {
+    try {
+      val key = mediaRepository.getMediaLicense(mediaFile.mediaId).getOrThrow()
+      val iv = mediaFile.iv
+        ?: throw IllegalArgumentException("iv is required for playback encrypted media file")
+
+      if (!mediaCache.checkMediaDownloaded(mediaFile.mediaId)) {
+        // ファイルのダウンロードが終わるまで待機
+        downloadController.startDownload(mediaFile.mediaId, mediaUrl)
+        downloadController.getDownloadProgressFlow(mediaFile.mediaId)
+          .first { it.state == WorkInfo.State.SUCCEEDED } // TODO: REならんか確認、firstOrNull使ったほうがいいかも
+      }
+
+      // キャッシュにある暗号化データを取得し復号する
+      val encryptedFile = mediaCache.getDownloadedFile(mediaFile.mediaId)
+      val currentDecryptedData = decryptFileEncryptedByAesCBC(encryptedFile, key, iv)
+
+      // 復号結果のバイト配列データで再生開始
+      playbackManager.setup(mediaFileByteArray = currentDecryptedData)
+    } catch (e: Exception) {
+      _isPlaying.value = false
+      Timber.tag("EncryptedPlayback").e(e)
     }
   }
 

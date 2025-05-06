@@ -13,7 +13,7 @@ class MediaRepositoryImpl @Inject constructor(private val apiService: MediaApiSe
     }
 
   override suspend fun getMediaLicense(mediaId: String): Result<String> =
-    runCatching { apiService.getMediaLicense(mediaId).keyRes.key }.onFailure {
+    runCatching { apiService.getMediaLicense(mediaId).key }.onFailure {
       Timber.e(it, "Failed to fetch media license")
     }
 }

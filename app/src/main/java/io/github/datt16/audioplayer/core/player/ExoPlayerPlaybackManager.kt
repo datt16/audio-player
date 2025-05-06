@@ -20,7 +20,7 @@ import javax.inject.Singleton
 class ExoPlayerPlaybackManager @Inject constructor(
   private val exoPlayer: ExoPlayer,
   @CacheDataSourceType private val dataSourceFactory: DataSource.Factory,
-) : Player.Listener, PlaybackManager {
+) : Player.Listener, PlaybackManager, ByteArrayDataSource.Listener {
 
   @OptIn(UnstableApi::class)
   override suspend fun setup(uri: Uri) {
@@ -32,9 +32,22 @@ class ExoPlayerPlaybackManager @Inject constructor(
     exoPlayer.prepare()
   }
 
-  override suspend fun setup(uri: Uri, iv: String, key: String) {
-    // TODO: implement setup with encrypt
-    TODO()
+  override suspend fun setup(mediaFileByteArray: ByteArray) {
+    // TODO: 引数のByteArrayがいつメモリ上から消えるかキャッチアップする
+    val byteArrayDataSourceFactory =
+      DataSource.Factory { ByteArrayDataSource(mediaFileByteArray, this) }
+    val mediaItem = MediaItem.fromUri(Uri.EMPTY)
+    val mediaSource =
+      DefaultMediaSourceFactory(byteArrayDataSourceFactory).createMediaSource(mediaItem)
+
+    exoPlayer.addListener(this)
+    exoPlayer.setMediaSource(mediaSource)
+    exoPlayer.prepare()
+  }
+
+  // for gc
+  override fun onClose() {
+    System.gc()
   }
 
   override fun play() {

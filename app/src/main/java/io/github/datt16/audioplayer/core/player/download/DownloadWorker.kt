@@ -22,7 +22,7 @@ class DownloadWorker(
   override suspend fun doWork(): Result = coroutineScope {
     val mediaUrl = inputData.getString(KEY_MEDIA_URL) ?: return@coroutineScope Result.failure()
     val contentId = inputData.getString(KEY_CONTENT_ID) ?: return@coroutineScope Result.failure()
-    val request = DownloadRequest.Builder(contentId, mediaUrl.toUri()).build()
+    val request = DownloadRequest.Builder(contentId, mediaUrl.toUri()).setCustomCacheKey(contentId).build()
     downloadManager.addDownload(request)
     downloadManager.resumeDownloads()
 
@@ -35,7 +35,7 @@ class DownloadWorker(
       val indexedDownload = downloadManager.downloadIndex.getDownload(request.id)
       state = activeDownload?.state
         ?: indexedDownload?.state
-        ?: Download.STATE_FAILED
+          ?: Download.STATE_FAILED
 
       val progress = when (state) {
         Download.STATE_COMPLETED -> 100 // 完了なら 100%
