@@ -3,6 +3,7 @@ package io.github.datt16.audioplayer.screens.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.datt16.audioplayer.core.designsystem.AudioPlayerAppTheme
+import io.github.datt16.audioplayer.core.player.download.DownloadStatus
 import io.github.datt16.audioplayer.viewmodels.CacheItem
 import io.github.datt16.audioplayer.viewmodels.GlobalSettingsViewModel
 import kotlinx.coroutines.delay
@@ -76,22 +78,40 @@ fun GlobalSettingsScreen(
       }
       progress?.entries?.forEach { (key, value) ->
         item(key) {
-          Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(key)
-            Spacer(modifier = Modifier.weight(1f))
-            Column {
-              Text("${value.progress}%")
-              Text(value.state.name)
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Text(
+              modifier = Modifier
+                .weight(1f, fill = false)
+                .padding(end = 8.dp),
+              style = AudioPlayerAppTheme.typography.labelSmall,
+              text = key
+            )
+            Column(
+              modifier = Modifier.width(IntrinsicSize.Max),
+              horizontalAlignment = Alignment.End,
+            ) {
+              if (value is DownloadStatus.Downloading) {
+                Text("${value.progress}%")
+              } else if (value is DownloadStatus.Failed) {
+                Text(value.state.name)
+              }
+              Text(value::class.simpleName ?: "")
             }
           }
+          Spacer(modifier = Modifier.height(8.dp))
         }
       }
       item {
         ElevatedButton(
           onClick = { viewModel.startDownloadSample() },
           modifier = Modifier
-              .fillMaxSize()
-              .padding(horizontal = 16.dp)
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
         ) {
           Text("Download Sample")
         }
@@ -123,8 +143,8 @@ fun GlobalSettingsScreen(
         CacheEntryItem(
           it,
           modifier = Modifier
-              .padding(horizontal = 16.dp)
-              .padding(top = 8.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp)
         )
       }
     }
@@ -135,30 +155,34 @@ fun GlobalSettingsScreen(
 private fun CacheEntryItem(cacheItem: CacheItem, modifier: Modifier = Modifier) {
   Column(
     modifier = modifier
-        .fillMaxWidth()
-        .background(
-            color = AudioPlayerAppTheme.colors.surfaceVariant,
-            shape = RoundedCornerShape(8.dp)
-        )
-        .padding(16.dp)
+      .fillMaxWidth()
+      .background(
+        color = AudioPlayerAppTheme.colors.surfaceVariant,
+        shape = RoundedCornerShape(8.dp)
+      )
+      .padding(16.dp)
   ) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
       Text(
+        modifier = Modifier
+          .weight(1f, false)
+          .padding(end = 8.dp),
         text = "key: ${cacheItem.key}",
         style = AudioPlayerAppTheme.typography.labelMedium,
         color = AudioPlayerAppTheme.colors.onSurface,
         fontWeight = FontWeight.Bold,
       )
       Text(
-        text = "${cacheItem.sizeMb}MB",
+        text = "%.1fMB".format(cacheItem.sizeMb),
         style = AudioPlayerAppTheme.typography.labelMedium,
         color = AudioPlayerAppTheme.colors.onSurface,
       )
     }
+    Spacer(modifier = Modifier.height(8.dp))
     Text(
-      text = cacheItem.path,
+      text = "path: ${cacheItem.path}",
       style = AudioPlayerAppTheme.typography.labelMedium,
-      color = AudioPlayerAppTheme.colors.surfaceVariant,
+      color = AudioPlayerAppTheme.colors.onSurfaceVariant,
     )
   }
 }

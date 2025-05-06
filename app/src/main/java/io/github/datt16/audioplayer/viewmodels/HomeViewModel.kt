@@ -13,6 +13,7 @@ import io.github.datt16.audioplayer.core.data.repository.MediaRepository
 import io.github.datt16.audioplayer.core.player.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
 import io.github.datt16.audioplayer.core.player.download.DownloadController
+import io.github.datt16.audioplayer.core.player.download.DownloadStatus
 import io.github.datt16.audioplayer.core.player.util.checkMediaDownloaded
 import io.github.datt16.audioplayer.core.player.util.decryptFileEncryptedByAesCBC
 import io.github.datt16.audioplayer.core.player.util.getDownloadedFile
@@ -87,7 +88,7 @@ constructor(
         // ファイルのダウンロードが終わるまで待機
         downloadController.startDownload(mediaFile.mediaId, mediaUrl)
         downloadController.getDownloadProgressFlow(mediaFile.mediaId)
-          .first { it.state == WorkInfo.State.SUCCEEDED } // TODO: REならんか確認、firstOrNull使ったほうがいいかも
+          .first { it is DownloadStatus.Success } // TODO: REならんか確認、firstOrNull使ったほうがいいかも
       }
 
       // キャッシュにある暗号化データを取得し復号する

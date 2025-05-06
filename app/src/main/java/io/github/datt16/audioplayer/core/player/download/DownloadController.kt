@@ -15,13 +15,30 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
+import timber.log.Timber
 import javax.inject.Inject
 
-data class DownloadStatus(
-  val contentId: String,
-  val progress: Int,
-  val state: WorkInfo.State,
-)
+sealed interface DownloadStatus {
+  val contentId: String
+
+  data class Enqueued(
+    override val contentId: String,
+  ) : DownloadStatus
+
+  data class Downloading(
+    override val contentId: String,
+    val progress: Int
+  ) : DownloadStatus
+
+  data class Failed(
+    override val contentId: String,
+    val state: WorkInfo.State,
+  ) : DownloadStatus
+
+  data class Success(
+    override val contentId: String,
+  ) : DownloadStatus
+}
 
 @OptIn(UnstableApi::class)
 class DownloadController @Inject constructor(
@@ -72,12 +89,7 @@ class DownloadController @Inject constructor(
       .getWorkInfosForUniqueWorkFlow(GROUP_TAG)
       .mapLatest { infos ->
         val info = infos.firstOrNull()
-        val progress = info?.progress?.getInt(DownloadWorker.KEY_PROGRESS, 0) ?: 0
-        DownloadStatus(
-          contentId = contentId,
-          progress = progress,
-          state = info?.state ?: WorkInfo.State.ENQUEUED
-        )
+        workStateToDownloadStatus(contentId, info)
       }
       .distinctUntilChanged()
   }
@@ -91,19 +103,40 @@ class DownloadController @Inject constructor(
           .mapNotNull { info ->
             // タグから contentId を抽出
             val contentTag = info.tags.firstOrNull { it.startsWith(CONTENT_TAG_PREFIX) }
-            val contentId =
-              contentTag?.removePrefix(CONTENT_TAG_PREFIX) ?: return@mapNotNull null
-            val percent = info.progress.getInt(DownloadWorker.KEY_PROGRESS, 0)
-            "work-$contentId" to DownloadStatus(
-              contentId = contentId,
-              progress = if (info.state == WorkInfo.State.RUNNING || info.state == WorkInfo.State.ENQUEUED) percent else 100,
-              state = info.state
-            )
+            val contentId = contentTag?.removePrefix(CONTENT_TAG_PREFIX) ?: return@mapNotNull null
+            "work-$contentId" to workStateToDownloadStatus(contentId, info)
           }
           .toMap()
       }
       // Map の中身が変わらない限り流さない
       .distinctUntilChanged()
+  }
+
+  private fun workStateToDownloadStatus(contentId: String, info: WorkInfo?): DownloadStatus {
+    return when (info?.state) {
+      null, WorkInfo.State.ENQUEUED -> DownloadStatus.Enqueued(contentId)
+      WorkInfo.State.SUCCEEDED -> {
+        DownloadStatus.Success(contentId)
+      }
+
+      WorkInfo.State.FAILED, WorkInfo.State.BLOCKED, WorkInfo.State.CANCELLED -> {
+        DownloadStatus.Failed(contentId, info.state)
+      }
+
+      WorkInfo.State.RUNNING -> {
+        val startTime = info.outputData.getLong("start_time", 0)
+        val currentTime = System.currentTimeMillis()
+        Timber.tag("osa").d(
+          """
+            workId: ${info.id}
+            workTag: ${info.tags}
+            execute from: ${(currentTime - startTime) / 60 / 1000}min
+          """.trimIndent()
+        )
+        val progress = info.progress.getInt(DownloadWorker.KEY_PROGRESS, 0)
+        DownloadStatus.Downloading(contentId, progress)
+      }
+    }
   }
 
   companion object {
