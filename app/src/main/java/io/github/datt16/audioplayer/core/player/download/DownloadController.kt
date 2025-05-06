@@ -11,6 +11,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.datt16.audioplayer.BuildConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -47,8 +48,9 @@ class DownloadController @Inject constructor(
 ) : DownloadManager.Listener {
 
   fun startDownload(contentId: String, contentUrl: String) {
-    val uniqueName = UNIQUE_WORK_PREFIX + contentId
-    val contentTag = CONTENT_TAG_PREFIX + contentId
+
+    val uniqueName = generateUniqueId(contentId, PREFIX_DOWNLOAD_WORK)
+    val contentTag = generateUniqueId(contentId, PREFIX_DOWNLOAD_CONTENT)
 
     val work = OneTimeWorkRequestBuilder<DownloadWorker>()
       .setInputData(
@@ -57,14 +59,20 @@ class DownloadController @Inject constructor(
           DownloadWorker.KEY_MEDIA_URL to contentUrl
         )
       )
-      .addTag(GROUP_TAG)
+      .addTag(GROUP_DOWNLOAD_ALL)
       .addTag(contentTag)
       .setConstraints(
         Constraints.Builder()
-          .setRequiredNetworkType(NetworkType.UNMETERED) // WiFi時のみ
+          .setRequiredNetworkType(NetworkType.CONNECTED)
           .build()
       )
+//      .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST) // 可能な限り早く実行・ForegroundService実行の割当量が制限されている場合は、通常の優先度に戻す
       .build()
+
+    /**
+     * setExpedited() を利用すればさらに実行優先度を上げられる
+     * POST_NOTIFICATIONSのマニフェスト宣言が必要、And12以下ではforegroundServiceの宣言が必要かも
+     */
 
     WorkManager.getInstance(context).enqueueUniqueWork(
       uniqueName,
@@ -74,7 +82,7 @@ class DownloadController @Inject constructor(
   }
 
   fun pauseDownload(contentId: String) {
-    val uniqueName = UNIQUE_WORK_PREFIX + contentId
+    val uniqueName = PREFIX_DOWNLOAD_WORK + contentId
     WorkManager.getInstance(context).cancelUniqueWork(uniqueName)
   }
 
@@ -86,7 +94,7 @@ class DownloadController @Inject constructor(
   @kotlin.OptIn(ExperimentalCoroutinesApi::class)
   fun getDownloadProgressFlow(contentId: String): Flow<DownloadStatus> {
     return WorkManager.getInstance(context)
-      .getWorkInfosForUniqueWorkFlow(GROUP_TAG)
+      .getWorkInfosForUniqueWorkFlow(GROUP_DOWNLOAD_ALL)
       .mapLatest { infos ->
         val info = infos.firstOrNull()
         workStateToDownloadStatus(contentId, info)
@@ -97,13 +105,14 @@ class DownloadController @Inject constructor(
   @kotlin.OptIn(ExperimentalCoroutinesApi::class)
   fun getAllDownloadProgressMapFlow(): Flow<Map<String, DownloadStatus>> {
     return WorkManager.getInstance(context)
-      .getWorkInfosByTagFlow(GROUP_TAG)
+      .getWorkInfosByTagFlow(GROUP_DOWNLOAD_ALL)
       .mapLatest { infos ->
         infos
           .mapNotNull { info ->
             // タグから contentId を抽出
-            val contentTag = info.tags.firstOrNull { it.startsWith(CONTENT_TAG_PREFIX) }
-            val contentId = contentTag?.removePrefix(CONTENT_TAG_PREFIX) ?: return@mapNotNull null
+            val contentTag = info.tags.firstOrNull { it.startsWith(PREFIX_DOWNLOAD_CONTENT) }
+            val contentId =
+              contentTag?.removePrefix(PREFIX_DOWNLOAD_CONTENT) ?: return@mapNotNull null
             "work-$contentId" to workStateToDownloadStatus(contentId, info)
           }
           .toMap()
@@ -139,9 +148,16 @@ class DownloadController @Inject constructor(
     }
   }
 
+  private fun generateUniqueId(contentId: String, prefix: String): String {
+    val timestamp = System.currentTimeMillis()
+    val appVersionName = BuildConfig.VERSION_NAME
+
+    return "$prefix${appVersionName}_${contentId}_$timestamp"
+  }
+
   companion object {
-    private const val UNIQUE_WORK_PREFIX = "media_download_"
-    private const val CONTENT_TAG_PREFIX = "media_download_content_"
-    private const val GROUP_TAG = "media_download_all"
+    private const val PREFIX_DOWNLOAD_WORK = "media_download_"
+    private const val PREFIX_DOWNLOAD_CONTENT = "media_download_content_"
+    private const val GROUP_DOWNLOAD_ALL = "media_download_all"
   }
 }
