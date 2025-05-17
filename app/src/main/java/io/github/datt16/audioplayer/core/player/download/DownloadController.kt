@@ -1,7 +1,9 @@
 package io.github.datt16.audioplayer.core.player.download
 
 import android.content.Context
+import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.work.Constraints
@@ -42,12 +44,17 @@ sealed interface DownloadStatus {
 }
 
 @OptIn(UnstableApi::class)
+@kotlin.OptIn(ExperimentalCoroutinesApi::class)
 class DownloadController @Inject constructor(
   @ApplicationContext private val context: Context,
   private val downloadManager: DownloadManager,
 ) : DownloadManager.Listener {
 
-  fun startDownload(contentId: String, contentUrl: String) {
+  fun startDownload(contentId: String, contentUrl: String): Flow<DownloadStatus> {
+    return startDownload(contentId, contentUrl.toUri())
+  }
+
+  fun startDownload(contentId: String, contentUri: Uri): Flow<DownloadStatus> {
     val uniqueName = generateUniqueId(contentId, PREFIX_DOWNLOAD_WORK)
     val contentUniqueTag = generateUniqueId(contentId, PREFIX_DOWNLOAD_CONTENT)
     val contentIdTag = "$PREFIX_DOWNLOAD_CONTENT$contentId"
@@ -56,7 +63,7 @@ class DownloadController @Inject constructor(
       .setInputData(
         workDataOf(
           DownloadWorker.KEY_CONTENT_ID to contentId,
-          DownloadWorker.KEY_MEDIA_URL to contentUrl
+          DownloadWorker.KEY_MEDIA_URL to contentUri
         )
       )
       .addTag(GROUP_DOWNLOAD_ALL)
@@ -80,6 +87,9 @@ class DownloadController @Inject constructor(
       androidx.work.ExistingWorkPolicy.REPLACE,
       work
     )
+
+    return WorkManager.getInstance(context).getWorkInfosByTagFlow(contentIdTag)
+      .mapLatest { infos -> workStateToDownloadStatus(contentId, infos.firstOrNull()) }
   }
 
   fun pauseDownload(contentId: String) {
