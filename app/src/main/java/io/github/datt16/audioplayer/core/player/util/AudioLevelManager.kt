@@ -1,4 +1,4 @@
-package io.github.datt16.audioplayer.core.player
+package io.github.datt16.audioplayer.core.player.util
 
 import io.github.datt16.audioplayer.core.player.processor.AudioLevelProcessor
 import kotlinx.coroutines.flow.MutableSharedFlow

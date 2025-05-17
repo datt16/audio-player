@@ -10,8 +10,8 @@ import androidx.work.WorkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
-import io.github.datt16.audioplayer.core.player.AudioLevelManager
-import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManager
+import io.github.datt16.audioplayer.core.player.util.AudioLevelManager
+import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManagerOld
 import io.github.datt16.audioplayer.core.player.download.DownloadController
 import io.github.datt16.audioplayer.core.player.download.DownloadStatus
 import io.github.datt16.audioplayer.core.player.util.checkMediaDownloaded
@@ -47,7 +47,7 @@ private data class HomeViewModelState(
 @OptIn(UnstableApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-  private val playbackManager: ExoPlayerPlaybackManager,
+  private val playbackManager: ExoPlayerPlaybackManagerOld,
   audioLevelManager: AudioLevelManager,
   private val mediaRepository: MediaRepository,
   private val mediaCache: SimpleCache,

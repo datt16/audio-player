@@ -16,8 +16,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.github.datt16.audioplayer.core.player.AudioLevelManager
-import io.github.datt16.audioplayer.core.player.CustomRenderersFactory
+import io.github.datt16.audioplayer.core.player.util.AudioLevelManager
+import io.github.datt16.audioplayer.core.player.processor.CustomRenderersFactory
 import io.github.datt16.audioplayer.core.player.download.DownloadController
 import io.github.datt16.audioplayer.core.player.download.DownloadManagerBuilder
 import io.github.datt16.audioplayer.core.player.processor.AudioLevelProcessor

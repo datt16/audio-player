@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 typealias PlaybackProgress = Pair<Float, Long> // (progressPercentage, durationSeconds)
 
-interface PlaybackManager {
+interface PlaybackManagerOld {
   val isPlaying: Boolean
   val duration: Long
   val playbackProgressFlow: Flow<PlaybackProgress>

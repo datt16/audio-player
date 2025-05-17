@@ -1,4 +1,4 @@
-package io.github.datt16.audioplayer.core.player
+package io.github.datt16.audioplayer.core.player.datasource
 
 import android.net.Uri
 import androidx.media3.common.C
