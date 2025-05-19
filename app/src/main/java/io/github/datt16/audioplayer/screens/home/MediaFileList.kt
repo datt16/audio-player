@@ -72,24 +72,28 @@ fun MediaFileCard(
   mediaFile: MediaFile,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  hasBorder: Boolean = false
+  hasBorder: Boolean = false,
 ) {
   Card(
     modifier = modifier.clickable { onClick() },
-    border = if (hasBorder) BorderStroke(
-      4.dp,
-      Brush.sweepGradient(
-        colors = listOf(
-          AudioPlayerAppTheme.colors.primary,
-          AudioPlayerAppTheme.colors.secondary
+    border = if (hasBorder) {
+      BorderStroke(
+        4.dp,
+        Brush.sweepGradient(
+          colors = listOf(
+            AudioPlayerAppTheme.colors.primary,
+            AudioPlayerAppTheme.colors.secondary
+          )
         )
       )
-    ) else null
+    } else {
+      null
+    }
   ) {
     Row(
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
+        .fillMaxWidth()
+        .padding(16.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
       Column(modifier = Modifier.weight(1f)) {

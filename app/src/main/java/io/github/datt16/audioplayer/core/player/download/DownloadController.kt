@@ -3,7 +3,6 @@ package io.github.datt16.audioplayer.core.player.download
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
-import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.work.Constraints
@@ -30,7 +29,7 @@ sealed interface DownloadStatus {
 
   data class Downloading(
     override val contentId: String,
-    val progress: Int
+    val progress: Int,
   ) : DownloadStatus
 
   data class Failed(
@@ -50,11 +49,11 @@ class DownloadController @Inject constructor(
   private val downloadManager: DownloadManager,
 ) : DownloadManager.Listener {
 
-  fun startDownload(contentId: String, contentUrl: String): Flow<DownloadStatus> {
-    return startDownload(contentId, contentUrl.toUri())
+  fun startDownload(contentId: String, contentUri: Uri): Flow<DownloadStatus> {
+    return startDownload(contentId, contentUri.toString())
   }
 
-  fun startDownload(contentId: String, contentUri: Uri): Flow<DownloadStatus> {
+  fun startDownload(contentId: String, contentUrl: String): Flow<DownloadStatus> {
     val uniqueName = generateUniqueId(contentId, PREFIX_DOWNLOAD_WORK)
     val contentUniqueTag = generateUniqueId(contentId, PREFIX_DOWNLOAD_CONTENT)
     val contentIdTag = "$PREFIX_DOWNLOAD_CONTENT$contentId"
@@ -63,7 +62,7 @@ class DownloadController @Inject constructor(
       .setInputData(
         workDataOf(
           DownloadWorker.KEY_CONTENT_ID to contentId,
-          DownloadWorker.KEY_MEDIA_URL to contentUri
+          DownloadWorker.KEY_MEDIA_URL to contentUrl
         )
       )
       .addTag(GROUP_DOWNLOAD_ALL)
@@ -93,7 +92,6 @@ class DownloadController @Inject constructor(
   }
 
   fun pauseDownload(contentId: String) {
-
     // TODO: keyの中からcontentIdを含んでるやつを探してそのuniqueNameをとってくる
     val uniqueName = generateUniqueId(contentId, PREFIX_DOWNLOAD_WORK)
     WorkManager.getInstance(context).cancelUniqueWork(uniqueName)

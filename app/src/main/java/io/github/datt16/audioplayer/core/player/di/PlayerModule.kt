@@ -3,49 +3,30 @@ package io.github.datt16.audioplayer.core.player.di
 import android.content.Context
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.github.datt16.audioplayer.core.player.util.AudioLevelManager
-import io.github.datt16.audioplayer.core.player.processor.CustomRenderersFactory
+import io.github.datt16.audioplayer.core.data.repository.MediaRepository
+import io.github.datt16.audioplayer.core.player.AudioPlayerManager
 import io.github.datt16.audioplayer.core.player.download.DownloadController
-import io.github.datt16.audioplayer.core.player.download.DownloadManagerBuilder
 import io.github.datt16.audioplayer.core.player.processor.AudioLevelProcessor
+import io.github.datt16.audioplayer.core.player.processor.CustomRenderersFactory
+import io.github.datt16.audioplayer.core.player.util.AudioLevelManager
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object PlayerModule {
-  @OptIn(UnstableApi::class)
-  @Provides
-  @Singleton
-  fun provideDatabaseProvider(
-    @ApplicationContext context: Context,
-  ): StandaloneDatabaseProvider {
-    return StandaloneDatabaseProvider(context)
-  }
 
-  @OptIn(UnstableApi::class)
-  @Provides
-  @Singleton
-  fun provideCache(
-    @ApplicationContext context: Context,
-    databaseProvider: StandaloneDatabaseProvider,
-  ): SimpleCache {
-    return DownloadManagerBuilder.buildCache(context, databaseProvider)
-  }
-
-  // --- player
+  // TODO: 多分いらなくなる
   @Provides
   @Singleton
   @HttpDataSourceType
@@ -53,6 +34,7 @@ object PlayerModule {
     return DefaultHttpDataSource.Factory()
   }
 
+  // TODO: 多分いらなくなる
   @OptIn(UnstableApi::class)
   @Provides
   @Singleton
@@ -73,12 +55,14 @@ object PlayerModule {
     return AudioLevelProcessor().apply { smoothingFactor = 0.2f }
   }
 
+  // TODO: 多分いらなくなる
   @Provides
   @Singleton
   fun provideAudioLevelManager(audioLevelProcessor: AudioLevelProcessor): AudioLevelManager {
     return AudioLevelManager(audioLevelProcessor)
   }
 
+  // TODO: 多分いらなくなる
   @OptIn(UnstableApi::class)
   @Provides
   @Singleton
@@ -93,33 +77,24 @@ object PlayerModule {
     ).build()
   }
 
-  // --- download ---
-  @OptIn(UnstableApi::class)
+  @UnstableApi
   @Provides
-  @Singleton
-  fun provideDownloadManager(
+  fun provideAudioPlayerManager(
     @ApplicationContext context: Context,
-    databaseProvider: StandaloneDatabaseProvider,
-    cache: SimpleCache,
-    @HttpDataSourceType dataSourceFactory: DataSource.Factory,
-  ): DownloadManager {
-    return DownloadManagerBuilder.buildDownloadManager(
+    downloadManager: DownloadController,
+    mediaRepository: MediaRepository,
+    encryptedFileCache: SimpleCache,
+    audioLevelProcessor: AudioLevelProcessor,
+  ): AudioPlayerManager {
+    return AudioPlayerManager(
       context = context,
-      cache = cache,
-      databaseProvider = databaseProvider,
-      dataSourceFactory = dataSourceFactory,
-    ).apply {
-      maxParallelDownloads = 3
-    }
-  }
-
-  @OptIn(UnstableApi::class)
-  @Provides
-  @Singleton
-  fun provideDownloadController(
-    @ApplicationContext context: Context,
-    downloadManager: DownloadManager,
-  ): DownloadController {
-    return DownloadController(context, downloadManager)
+      downloadController = downloadManager,
+      mediaRepository = mediaRepository,
+      encryptedFileCache = encryptedFileCache,
+      customRenderersFactory = CustomRenderersFactory(
+        context = context,
+        audioLevelProcessor = audioLevelProcessor
+      )
+    )
   }
 }

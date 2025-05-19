@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,6 +78,25 @@ fun AudioPlayerAppScaffold(
           selected = currentDestination?.hierarchy?.any { it.hasRoute<AudioPlayerAppDestinations.GlobalSettings>() } == true,
           onClick = {
             navController.navigate(AudioPlayerAppDestinations.GlobalSettings) {
+              popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+              }
+              launchSingleTop = true
+              restoreState = true
+            }
+          }
+        )
+        NavigationBarItem(
+          icon = {
+            Icon(
+              imageVector = Icons.Default.Create,
+              contentDescription = null
+            )
+          },
+          label = { Text("HandsOn") },
+          selected = currentDestination?.hierarchy?.any { it.hasRoute<AudioPlayerAppDestinations.HandsOnTop>() } == true,
+          onClick = {
+            navController.navigate(AudioPlayerAppDestinations.HandsOnTop) {
               popUpTo(navController.graph.findStartDestination().id) {
                 saveState = true
               }

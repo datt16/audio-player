@@ -37,7 +37,7 @@ class DownloadWorker(
       val indexedDownload = downloadManager.downloadIndex.getDownload(request.id)
       state = activeDownload?.state
         ?: indexedDownload?.state
-          ?: Download.STATE_FAILED
+        ?: Download.STATE_FAILED
 
       val progress = when (state) {
         Download.STATE_COMPLETED -> 100 // 完了なら 100%

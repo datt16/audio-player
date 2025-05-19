@@ -3,43 +3,35 @@ package io.github.datt16.audioplayer.core.player.datasource
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import java.io.File
+import androidx.media3.datasource.cache.SimpleCache
+import io.github.datt16.audioplayer.core.data.repository.MediaRepository
+import io.github.datt16.audioplayer.core.player.download.DownloadController
+
+data class DataSourceDebugFlags(
+  val skipDecryptStep: Boolean = false,
+) {
+  companion object {
+    val DEFAULT = DataSourceDebugFlags()
+  }
+}
 
 @UnstableApi
 class OnMemoryDataSourceProvider(
   private val contentUri: Uri,
   private val contentId: String,
+  private val downloadController: DownloadController,
+  private val mediaRepository: MediaRepository,
+  private val encryptedFileCache: SimpleCache,
+  private val debugFlags: DataSourceDebugFlags = DataSourceDebugFlags.DEFAULT,
 ) : DataSource.Factory {
-  private val scope = CoroutineScope(Dispatchers.IO)
-  private var dataSource: DataSource? = null
-
   override fun createDataSource(): DataSource {
-    TODO("Not yet implemented")
-  }
-
-  private suspend fun downloadMediaFile(contentUri: Uri, contentId: String) {
-
-  }
-
-  private fun getMediaFile(): File {
-    TODO()
-  }
-
-  private suspend fun getEncryptionKey(contentId: String): ByteArray {
-    TODO()
-  }
-
-  private fun decryptMediaFile(encryptedFile: File, key: ByteArray): ByteArray {
-    TODO()
-  }
-
-  private fun createOnMemoryDataSource(decryptedData: ByteArray): DataSource {
-    return BasicOnMemoryDataSource(decryptedData)
-  }
-
-  private fun release() {
-
+    return CbcEncryptedDataSource(
+      contentUri = contentUri,
+      contentId = contentId,
+      downloadController = downloadController,
+      mediaRepository = mediaRepository,
+      encryptedFileCache = encryptedFileCache,
+      debugFlags = debugFlags,
+    )
   }
 }

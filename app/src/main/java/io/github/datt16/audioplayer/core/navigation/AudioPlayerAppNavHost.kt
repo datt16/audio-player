@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.github.datt16.audioplayer.screens.handson.top.HandsOnTop
 import io.github.datt16.audioplayer.screens.home.HomeScreen
 import io.github.datt16.audioplayer.screens.settings.GlobalSettingsScreen
 
@@ -25,6 +26,11 @@ fun AudioPlayerAppNavHost(
     }
     composable<AudioPlayerAppDestinations.GlobalSettings> {
       GlobalSettingsScreen(
+        modifier = modifier,
+      )
+    }
+    composable<AudioPlayerAppDestinations.HandsOnTop> {
+      HandsOnTop(
         modifier = modifier,
       )
     }

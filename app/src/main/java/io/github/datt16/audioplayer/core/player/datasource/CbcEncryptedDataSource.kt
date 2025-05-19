@@ -12,15 +12,16 @@ import io.github.datt16.audioplayer.core.player.download.DownloadController
 import io.github.datt16.audioplayer.core.player.download.DownloadStatus
 import io.github.datt16.audioplayer.core.player.util.checkMediaDownloaded
 import io.github.datt16.audioplayer.core.player.util.getDownloadedFile
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
-import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import timber.log.Timber
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import kotlin.coroutines.resumeWithException
 
 @UnstableApi
 class CbcEncryptedDataSource(
@@ -29,6 +30,7 @@ class CbcEncryptedDataSource(
   private val downloadController: DownloadController,
   private val mediaRepository: MediaRepository,
   private val encryptedFileCache: SimpleCache,
+  private val debugFlags: DataSourceDebugFlags,
 ) : BaseDataSource(false) {
   private var bytesRemaining: Long = 0
   private var offset: Long = 0
@@ -63,7 +65,18 @@ class CbcEncryptedDataSource(
       val ivByte = iv?.decodeHex() ?: throw Exception("iv is null")
       val keyByte = key.decodeHex()
 
-      decryptedData = decryptDataEncryptedByAesCBC(encryptedData, keyByte, ivByte)
+      // for debug
+      decryptedData = if (debugFlags.skipDecryptStep) {
+        encryptedData
+      } else {
+        decryptDataEncryptedByAesCBC(encryptedData, keyByte, ivByte)
+      }
+
+//      runBlocking {
+//        Timber.tag("osa").d("これからダウンロードするよ")
+//        val encryptedData = async { downloadEncryptedMediaFile() }
+//        decryptedData = encryptedData.await()
+//      }
     } catch (e: Exception) {
       throw Exception(
         "再生ファイルの用意に失敗しました code=${PlaybackException.ERROR_CODE_IO_UNSPECIFIED}",
@@ -83,7 +96,7 @@ class CbcEncryptedDataSource(
 
     transferStarted(dataSpec)
 
-    return bytesRemaining
+    return C.LENGTH_UNSET.toLong()
   }
 
   override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
@@ -94,6 +107,7 @@ class CbcEncryptedDataSource(
     // - offset + lengthがbufferのサイズを超える場合
     // - メモリ不足の場合
     // - decryptedDataがnullの場合
+    Timber.tag("osa").d("これから読み込むデータを返すよ")
 
     if (bytesRemaining == 0L) return C.RESULT_END_OF_INPUT
 
@@ -166,7 +180,7 @@ class CbcEncryptedDataSource(
   private fun decryptDataEncryptedByAesCBC(
     encryptedData: ByteArray,
     keyData: ByteArray,
-    ivData: ByteArray
+    ivData: ByteArray,
   ): ByteArray {
     val cipher = Cipher.getInstance("AES/CBC/NoPadding")
     val keySpec = SecretKeySpec(keyData, "AES")

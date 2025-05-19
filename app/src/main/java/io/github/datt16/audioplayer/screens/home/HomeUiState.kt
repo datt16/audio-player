@@ -7,7 +7,7 @@ sealed interface HomeUiState {
   data object Loading : HomeUiState
 
   data class Success(
-    val mediaFiles: List<MediaFileItemState>
+    val mediaFiles: List<MediaFileItemState>,
   ) : HomeUiState
 
   data class Error(val message: String, val sampleMediaList: List<MediaFileItemState>) : HomeUiState
@@ -17,12 +17,12 @@ sealed interface MediaFileItemState {
   val mediaFile: MediaFile
 
   data class NotLoaded(
-    override val mediaFile: MediaFile
+    override val mediaFile: MediaFile,
   ) : MediaFileItemState
 
   data class Loading(
     override val mediaFile: MediaFile,
-    val status: DownloadStatus
+    val status: DownloadStatus,
   ) : MediaFileItemState
 
   data class Loaded(

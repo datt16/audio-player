@@ -10,10 +10,10 @@ import androidx.work.WorkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.datt16.audioplayer.core.data.model.MediaFile
 import io.github.datt16.audioplayer.core.data.repository.MediaRepository
-import io.github.datt16.audioplayer.core.player.util.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.ExoPlayerPlaybackManagerOld
 import io.github.datt16.audioplayer.core.player.download.DownloadController
 import io.github.datt16.audioplayer.core.player.download.DownloadStatus
+import io.github.datt16.audioplayer.core.player.util.AudioLevelManager
 import io.github.datt16.audioplayer.core.player.util.checkMediaDownloaded
 import io.github.datt16.audioplayer.core.player.util.decryptFileEncryptedByAesCBC
 import io.github.datt16.audioplayer.core.player.util.getDownloadedFile
@@ -37,11 +37,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
-
 private data class HomeViewModelState(
   val isLoading: Boolean = false,
   val mediaFiles: List<MediaFile> = emptyList(),
-  val errorMessage: String? = null
+  val errorMessage: String? = null,
 )
 
 @OptIn(UnstableApi::class)
